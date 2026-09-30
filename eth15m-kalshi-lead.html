@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ETH Kalshi">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
+<title>ETH 15m Kalshi Lead</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: left column = the call, the throttle and the lead chart; right column = market asks and the live lead-lag measurement. Evidence below. */
+:root{
+  --bg:#f3f4f9; --surface:#ffffff; --sunk:#eceef6; --ink:#151a2d; --muted:#5a6182; --line:#d9dcea;
+  --accent:#434fcf; --perp:#b4631a; --up:#0b8a69; --down:#cf432d; --warn:#9a6708;
+  --up-soft:#d9f1ea; --down-soft:#fae0da; --accent-soft:#e3e6fb;
+  --sans:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --bg:#0e1120; --surface:#161a2e; --sunk:#1d2239; --ink:#e7e9f7; --muted:#979ec0; --line:#2b3153;
+  --accent:#909aff; --perp:#f0a35c; --up:#3ecfa4; --down:#ff806a; --warn:#e2b257;
+  --up-soft:#143a33; --down-soft:#45211c; --accent-soft:#262c58; color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --bg:#0e1120; --surface:#161a2e; --sunk:#1d2239; --ink:#e7e9f7; --muted:#979ec0; --line:#2b3153;
+  --accent:#909aff; --perp:#f0a35c; --up:#3ecfa4; --down:#ff806a; --warn:#e2b257;
+  --up-soft:#143a33; --down-soft:#45211c; --accent-soft:#262c58; color-scheme:dark; }
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1200px;margin:0 auto;padding-inline:20px;padding-block:20px 56px;display:flex;flex-direction:column;gap:16px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+h1{font-size:20px;line-height:1.2;margin:0;font-weight:700;letter-spacing:-.01em}
+h2{font-size:12px;margin:0;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h3{font-size:15px;margin:0;font-weight:600}
+p{margin:0}
+.top{display:flex;flex-wrap:wrap;gap:10px 20px;align-items:center;justify-content:space-between}
+.top .sub{color:var(--muted);font-size:14px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;background:var(--sunk);color:var(--muted);font-size:12.5px;white-space:nowrap}
+.chip i{width:7px;height:7px;border-radius:50%;background:var(--muted);opacity:.5}
+.chip.ok{color:var(--ink)} .chip.ok i{background:var(--up);opacity:1}
+.chip.bad i{background:var(--down);opacity:1}
+.chip.demo{background:var(--warn);color:var(--bg);font-weight:600}
+.grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;align-items:start}
+.col{display:flex;flex-direction:column;gap:16px;min-width:0}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.panel>header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 12px}
+.note{color:var(--muted);font-size:13px}
+.call{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 24px}
+.pbig{font:600 64px/1 var(--mono);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.pbig small{font-size:22px;font-weight:500;margin-left:4px;letter-spacing:0;color:var(--muted)}
+.plabel{font-size:13px;color:var(--muted);margin-bottom:6px}
+.clock{text-align:right}
+.clock .t{font:600 34px/1 var(--mono);font-variant-numeric:tabular-nums}
+.lean{display:inline-block;padding:2px 10px;border-radius:6px;font-weight:600;font-size:13px;background:var(--sunk);color:var(--muted)}
+.lean.up{background:var(--up-soft);color:var(--up)} .lean.down{background:var(--down-soft);color:var(--down)}
+.bar{position:relative;height:14px;border-radius:7px;background:var(--down);overflow:hidden}
+.bar b{position:absolute;inset:0 auto 0 0;background:var(--up);width:50%;transition:width .25s linear}
+.bar:after{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--surface);opacity:.85}
+.barlab{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted)}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:12px 16px;border-top:1px solid var(--line);padding-top:12px}
+.kv div{min-width:0}
+.kv dt{font-size:12px;color:var(--muted)}
+.kv dd{margin:0;font:500 16px/1.35 var(--mono);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.kv dd small{font-size:12px;color:var(--muted);font-weight:400}
+dl{margin:0}
+.pos{color:var(--up)} .neg{color:var(--down)}
+/* throttle */
+.thr{position:relative;height:44px;margin-top:4px}
+.thr .track{position:absolute;left:0;right:0;top:18px;height:8px;border-radius:4px;background:linear-gradient(90deg,var(--down-soft),var(--sunk) 50%,var(--up-soft))}
+.thr .mid{position:absolute;left:50%;top:10px;width:2px;height:24px;background:var(--ink);opacity:.55;transform:translateX(-1px)}
+.thr .mk{position:absolute;top:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;transition:left .25s linear}
+.thr .mk b{width:14px;height:14px;border-radius:50%;margin-top:15px;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--line)}
+.thr .mk.ref b{background:transparent;border:3px solid var(--accent);box-shadow:none;width:20px;height:20px;margin-top:12px} .thr .mk.perp b{background:var(--perp)}
+.thrlab{display:flex;justify-content:space-between;font:12.5px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--muted)}
+.legend span:before{content:"";display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle;background:var(--c)}
+canvas{display:block;width:100%;height:230px}
+select,input[type=number]{font:500 14px var(--mono);color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:5px 8px}
+input[type=number]{width:96px}
+select{font-family:var(--sans)}
+select:focus-visible,input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+button{font:500 13px var(--sans);color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:5px 10px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;font-size:13px;color:var(--muted)}
+.badge{font-size:11.5px;padding:1px 7px;border-radius:5px;background:var(--accent-soft);color:var(--accent);font-weight:600;white-space:nowrap}
+.badge.warn{background:var(--sunk);color:var(--warn)}
+.scroll{overflow-x:auto;min-width:0}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th{font-weight:600;font-size:12px;color:var(--muted);text-align:left;padding:6px 10px 6px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:6px 10px 6px 0;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.num,th.r{text-align:right;white-space:nowrap}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+table.wide{min-width:560px}
+.hl td{background:var(--accent-soft)}
+.tag{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 7px;border-radius:5px;white-space:nowrap}
+.tag.core{background:var(--accent-soft);color:var(--accent)}
+.tag.small{background:var(--up-soft);color:var(--up)}
+.tag.none{background:var(--sunk);color:var(--muted)}
+.empty{padding:12px;border:1px dashed var(--line);border-radius:8px;color:var(--muted);font-size:13.5px}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
+.prose{max-width:70ch;font-size:14.5px}
+.verdict{font-size:15px;padding:10px 12px;border-radius:8px;background:var(--sunk)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>ETH 15m Kalshi Lead</h1>
+      <div class="sub" id="winLabel">Kalshi ETH 15 min, Up or Down</div>
+    </div>
+    <div class="chips">
+      <span class="chip demo" id="demoChip" hidden>Demo data</span>
+      <span class="chip" id="chipRef"><i></i><span>Kalshi reference</span></span>
+      <span class="chip" id="chipPerp"><i></i><span>Perp</span></span>
+      <span class="chip" id="chipCb"><i></i><span>Coinbase</span></span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="col">
+      <section class="panel">
+        <div class="call">
+          <div>
+            <div class="plabel">Probability this window settles Up</div>
+            <div class="pbig"><span id="pUp">--</span><small>%</small></div>
+          </div>
+          <div class="clock">
+            <div class="plabel">Time left</div>
+            <div class="t" id="tLeft">--:--</div>
+            <div style="margin-top:8px"><span class="lean" id="lean">Waiting for data</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="bar"><b id="barUp"></b></div>
+          <div class="barlab"><span>Up <span class="num" id="barUpL">--</span></span><span>Down <span class="num" id="barDnL">--</span></span></div>
+        </div>
+        <p id="says">Connecting to the feeds.</p>
+        <dl class="kv">
+          <div><dt>Target</dt><dd><span id="kVal">--</span></dd></div>
+          <div><dt>Kalshi reference</dt><dd><span id="refVal">--</span> <small id="refAge"></small></dd></div>
+          <div><dt>Perp-implied now</dt><dd><span id="nowVal">--</span></dd></div>
+          <div><dt>Perp ahead by</dt><dd><span id="leadVal">--</span></dd></div>
+          <div><dt>Distance</dt><dd><span id="zVal">--</span> <small>sigma</small></dd></div>
+          <div><dt>Volatility</dt><dd><span id="volVal">--</span> <small>bp/min</small></dd></div>
+        </dl>
+      </section>
+
+      <section class="panel">
+        <header><h2>Target distance throttle</h2><div class="legend"><span style="--c:var(--accent)">Kalshi reference (ring)</span><span style="--c:var(--perp)">Perp-implied now (dot)</span></div></header>
+        <div class="thr" aria-hidden="true">
+          <div class="track"></div><div class="mid"></div>
+          <div class="mk ref" id="mkRef" style="left:50%"><b></b></div>
+          <div class="mk perp" id="mkPerp" style="left:50%"><b></b></div>
+        </div>
+        <div class="thrlab"><span id="thrLo">--</span><span>Target</span><span id="thrHi">--</span></div>
+        <p class="note" id="thrNote">The scale is twice the typical move left before settlement, so the ends mean about 2 sigma. When the orange dot sits away from the blue one, the Kalshi reference has not caught up yet.</p>
+      </section>
+
+      <section class="panel">
+        <header><h2>Last 90 seconds</h2><div class="legend"><span style="--c:var(--accent)">Kalshi reference, as published</span><span style="--c:var(--perp)">Perp, basis-adjusted</span><span style="--c:var(--muted)">Target</span></div></header>
+        <canvas id="cvLead" role="img" aria-label="Kalshi reference and basis-adjusted perp over the last 90 seconds against the target"></canvas>
+        <p class="note">Both lines are drawn at their own event timestamps. The blue line ends where the latest publication ends, a few seconds behind the orange one.</p>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="panel">
+        <header><h2>Feeds</h2></header>
+        <div class="row"><label for="perpSel">Perp</label>
+          <select id="perpSel">
+            <option value="okx">OKX ETH-USDT perp (fastest)</option>
+            <option value="krf">Kraken ETH-USD perp</option>
+            <option value="cb">Coinbase ETH-USD spot</option>
+          </select></div>
+        <p class="note">Kalshi's own ETH perp can't be read from a web page: its API sends no cross-origin permission. The perps listed here track the same index to within 0.3 bp once the basis is removed.</p>
+      </section>
+
+      <section class="panel">
+        <header><h2>Market</h2><span class="note">Type the Kalshi asks</span></header>
+        <div class="row">
+          <label for="askUp">Up ask &cent;</label><input type="number" id="askUp" min="1" max="99" step="1" placeholder="--" inputmode="numeric">
+          <label for="askDn">Down ask &cent;</label><input type="number" id="askDn" min="1" max="99" step="1" placeholder="--" inputmode="numeric">
+        </div>
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Side</th><th class="r">Ask</th><th class="r">Model</th><th class="r">Edge after fee</th></tr></thead>
+            <tbody>
+              <tr><td>Up</td><td class="num" id="upAsk">--</td><td class="num" id="upFair">--</td><td class="num" id="upEdge">--</td></tr>
+              <tr><td>Down</td><td class="num" id="dnAsk">--</td><td class="num" id="dnFair">--</td><td class="num" id="dnEdge">--</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">Kalshi's order book needs an API key, so it can't be read here. Fee: 0.07 &times; p &times; (1 &minus; p) per contract, rounded up to the cent per order.</p>
+      </section>
+
+      <section class="panel">
+        <header><h2>Lead measured live</h2><span class="note" id="llN"></span></header>
+        <div id="llBody"><div class="empty">Collecting. The table fills in after about 2 minutes and settles after 10 to 15.</div></div>
+      </section>
+    </div>
+  </div>
+
+  <section class="panel">
+    <header><h2>Does the perp lead the Kalshi value?</h2><span class="note">Recorded 30 Sep 2026, 13:45 to 14:10 UTC &middot; 1,471 index seconds &middot; 495 Kalshi publications</span></header>
+    <p class="verdict">Yes, by about 2.5 seconds, but almost all of it is Kalshi's publishing delay, not the perp discovering the price first. Measured on the index's own timestamps, the perp leads by less than one second.</p>
+    <div class="scroll">
+      <table class="wide">
+        <thead><tr><th>Test</th><th>Result</th><th>Reading</th></tr></thead>
+        <tbody>
+          <tr><td>Age of the published Kalshi reference</td><td>Median 2.4 s, 10th to 90th percentile 1.5 to 3.5 s. Kalshi republishes every 2 or 3 s, and each file lands about 1.2 s after its last stamp</td><td>This is the lead you see</td></tr>
+          <tr><td>Perp gap at publication vs the next published seconds</td><td>OKX perp: direction right 83% at +1 s and +2 s (z = 12.8, n = 361); R&sup2; 0.65 at +2 s; &beta; = 0.94</td><td>The gap closes within 2 to 3 s</td></tr>
+          <tr><td>Same gap vs moves from +4 to +10 s</td><td>OKX &beta; = 0.21, t = 1.3, R&sup2; 0.01 (n = 93, non-overlapping). Coinbase spot: t = 0.8. Kraken perp: t = 2.5, one of 3 feeds</td><td>Nothing left after the delay</td></tr>
+          <tr><td>Event-time cross-correlation, 1 s returns</td><td>OKX perp: 0.79 at lag 0, 0.15 at 1 s (z = 5.5), none at 2 to 5 s (|r| &le; 0.05). Coinbase spot: 0.74 at lag 0</td><td>True lead under 1 s</td></tr>
+          <tr><td>Settlement value, 60 s average</td><td>A 2.5 s head start covers 2.5 of the 60 seconds averaged</td><td>Worth most in the final minute</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="two">
+      <div>
+        <h3>How Kalshi ETH 15 min settles</h3>
+        <p class="prose">The target is the average of the CF Benchmarks ETH index over the 60 seconds before the window opens. The result is the same 60-second average before the window closes. Up wins if the result is above the target. Checked three times: for 10:00 AM ET this page computed 2,707.4435 and Kalshi posted 2,707.4447; for 10:15, 2,701.6018 against 2,701.6038. With 3 seconds left in the 10:15 window, the projected result was 2,678.036 and the settlement came in at 2,678.032. The index comes from Kalshi's public price file, the one its own chart reads. In each window's final minute that file's per-second series switches to the forming average, so this page rebuilds the raw index from the averages, exact to 0.0004 dollars.</p>
+      </div>
+      <div>
+        <h3>What would make it an edge</h3>
+        <p class="prose">A few seconds' lead only pays if Kalshi's quotes are slower than the perp. Kalshi's market makers can buy the index directly at one to five updates a second, without the public file's delay, and most watch perps. Whether the Up and Down prices lag can't be measured without Kalshi order-book data, which needs an API key. The model and the fee column show whether a typed ask leaves room after the fee.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script id="core">
+var Core = (function(){
+  var A = [0.97,1.19,1.21,1.26,1.24,1.26,1.33,1.38,1.41,1.44,1.46,1.50,1.53,1.59,1.59,1.59];
+  var C_H = -0.095, LAM = Math.pow(0.5, 1/20), FEE = 0.07;
+  function t4(x){ var w = 1 + x*x/4; return 0.5 + 0.375*(x/Math.sqrt(w))*(1 - (x*x/w)/12); }
+  function scaleA(el){ var m = Math.max(0, Math.min(14.999, el/60)), i = Math.floor(m); return A[i] + (A[i+1]-A[i])*(m-i); }
+  function coefH(el){ var m = el/60; return m <= 9 ? C_H : m >= 14 ? 0 : C_H*(14-m)/5; }
+  function sdRel(tau, sigSec){ tau = Math.max(0, tau); return tau > 60 ? sigSec*Math.sqrt(tau-40) : (tau/60)*sigSec*Math.sqrt(tau/3); }
+  function prob(o){
+    var sd = sdRel(o.tau, o.sigMin/Math.sqrt(60)), d = Math.log(o.expFinal/o.strike);
+    var z = sd > 1e-12 ? d/sd : (d > 0 ? 60 : -60); z = Math.max(-60, Math.min(60, z));
+    var h = Math.max(-3, Math.min(3, o.h || 0)), x = scaleA(o.elapsed)*z + coefH(o.elapsed)*h;
+    return {p: t4(x), z: z, sd: sd};
+  }
+  function fee(p){ return Math.ceil(100*FEE*p*(1-p) - 1e-9)/100; }
+  function ols(rows){ var n = rows.length; if (n < 8) return null; var sxy=0,sxx=0,syy=0,i; for (i=0;i<n;i++){ sxy+=rows[i][0]*rows[i][1]; sxx+=rows[i][0]*rows[i][0]; syy+=rows[i][1]*rows[i][1]; } if (!(sxx>0) || !(syy>0)) return null; var b = sxy/sxx, sse = syy - b*sxy, se = Math.sqrt(Math.max(1e-18, sse/(n-1)/sxx)); var hit=0,m=0; for (i=0;i<n;i++){ var g=rows[i][0], y=rows[i][1]; if (Math.abs(g) < 0.5 || y === 0) continue; m++; if ((g>0)===(y>0)) hit++; } return {n:n, b:b, t:b/se, r2:1-sse/syy, hit:hit, m:m}; }
+  function corr(x, y){ var n = x.length; if (n < 20) return null; var mx=0,my=0,i; for (i=0;i<n;i++){ mx+=x[i]; my+=y[i]; } mx/=n; my/=n; var a=0,b=0,c=0; for (i=0;i<n;i++){ var u=x[i]-mx, v=y[i]-my; a+=u*v; b+=u*u; c+=v*v; } return b>0&&c>0 ? a/Math.sqrt(b*c) : null; }
+  function wilson(k, n){ if (!n) return [0,1]; var z = 1.96, ph = k/n, d = 1 + z*z/n, c = ph + z*z/(2*n), s = z*Math.sqrt(ph*(1-ph)/n + z*z/(4*n*n)); return [(c-s)/d, (c+s)/d]; }
+  // Raw index inside a final minute, rebuilt from the 60 s averages: raw(T) = raw(T-60) + 60*(avg(T) - avg(T-1)).
+  function rebuild(rawPrev60, avgNow, avgPrev){ return rawPrev60 + 60*(avgNow - avgPrev); }
+  return {t4:t4, scaleA:scaleA, coefH:coefH, sdRel:sdRel, prob:prob, fee:fee, ols:ols, corr:corr, wilson:wilson, rebuild:rebuild, LAM:LAM};
+})();
+if (typeof module !== "undefined") module.exports = Core;
+</script>
+
+<script>
+(function(){
+"use strict";
+var DEMO = location.hash === "#demo";
+var WIN = 900000, END_LAG = 1000, BETA = 0.9, KEEP = 45*60000;
+var S3 = "https://kalshi-public-docs.s3.amazonaws.com/external/crypto/eth_history.json", CBREST = "https://api.exchange.coinbase.com/";
+function $(id){ return document.getElementById(id); }
+function inFinal(T){ return ((T/1000) % 900) >= 840; }
+var S = {
+  raw: new Map(), avg: new Map(), pubs: [], lastM: 0, lastPubRecv: 0, lastPoll: 0, polling: false,
+  feeds: {okx: [], krf: [], cb: []}, fresh: {okx: 0, krf: 0, cb: 0, ref: 0},
+  candles1m: new Map(), cbCandles: new Map(), ewVar: null, win: null, model: null, stats: null, lastStats: 0, lastTick: 0, off: 0, offs: []
+};
+function perpKey(){ return $("perpSel").value; }
+
+/* ---------- Kalshi reference (public price file) ---------- */
+function ingest(j, recv){
+  var m = +j.maturity_ts_ms; if (!m || m <= S.lastM) return;
+  var ts = j.timeseries || [], adj = j.timeseries_adjusted || [], n = Math.min(ts.length, adj.length), i, T;
+  for (i=0;i<n;i++){ T = m - (n-1-i)*1000; S.avg.set(T, +ts[i]); if (!inFinal(T)) S.raw.set(T, +adj[i]); }
+  for (i=0;i<n;i++){ T = m - (n-1-i)*1000; if (inFinal(T) && !S.raw.has(T)) { var a = S.raw.get(T-60000), p = S.avg.get(T-1000); if (a != null && p != null) S.raw.set(T, Core.rebuild(a, S.avg.get(T), p)); } }
+  var c = j.candlesticks && j.candlesticks["1M"]; if (c) for (i=0;i<c.length;i++) S.candles1m.set(+c[i].open_ts_ms, +c[i].close);
+  S.pubs.push([m, recv]); S.lastM = m; S.lastPubRecv = recv; S.fresh.ref = Date.now();
+  var cut = m - KEEP; S.raw.forEach(function(v, k){ if (k < cut) S.raw.delete(k); }); S.avg.forEach(function(v, k){ if (k < cut) S.avg.delete(k); });
+  while (S.pubs.length && S.pubs[0][0] < cut) S.pubs.shift();
+}
+function poll(){
+  if (DEMO || S.polling || Date.now() - S.lastPoll < 900) return; S.polling = true; S.lastPoll = Date.now();
+  fetch(S3 + "?t=" + S.lastPoll, {cache: "no-store"}).then(function(r){ return r.json(); }).then(function(j){ ingest(j, Date.now()); })
+    .catch(function(){}).then(function(){ S.polling = false; });
+}
+// Background tabs slow timers to once a minute, so every socket message also nudges the poller.
+function nudge(){ poll(); if (Date.now() - S.lastTick > 900) tick(); }
+
+/* ---------- perp and spot feeds ---------- */
+// One row per 100 ms of arrival time: the last quote in each slot wins.
+function push(key, ex, mid){ var a = S.feeds[key], now = Date.now(); if (!(mid > 0)) return; var row = [ex, now, mid]; if (a.length && Math.floor(a[a.length-1][1]/100) === Math.floor(now/100)) a[a.length-1] = row; else a.push(row); S.fresh[key] = now; if (a.length > 40000) a.splice(0, 8000); }
+function socket(name, url, sub, onm){
+  var ws, dog, born = Date.now();
+  try { ws = new WebSocket(url); } catch(e){ return setTimeout(function(){ socket(name, url, sub, onm); }, 3000); }
+  dog = setInterval(function(){ if (Date.now() - Math.max(S.fresh[name], born) > 15000) { try { ws.close(); } catch(e){} } }, 5000);
+  ws.onopen = function(){ sub.forEach(function(m){ ws.send(JSON.stringify(m)); }); };
+  ws.onmessage = function(ev){ var m; try { m = JSON.parse(ev.data); } catch(e){ return; } onm(m); nudge(); };
+  ws.onclose = function(){ clearInterval(dog); ws.onclose = null; setTimeout(function(){ socket(name, url, sub, onm); }, 2000); };
+  ws.onerror = function(){ try { ws.close(); } catch(e){} };
+}
+function connectAll(){
+  socket("okx", "wss://ws.okx.com:8443/ws/v5/public", [{op:"subscribe", args:[{channel:"bbo-tbt", instId:"ETH-USDT-SWAP"}]}], function(m){ var d = m.data && m.data[0]; if (d && d.bids && d.bids[0] && d.asks[0]) push("okx", +d.ts, (+d.bids[0][0] + +d.asks[0][0])/2); });
+  socket("krf", "wss://futures.kraken.com/ws/v1", [{event:"subscribe", feed:"ticker", product_ids:["PF_ETHUSD"]}], function(m){ if (m.feed === "ticker" && m.bid && m.ask) push("krf", +m.time, (m.bid + m.ask)/2); });
+  socket("cb", "wss://ws-feed.exchange.coinbase.com", [{type:"subscribe", product_ids:["ETH-USD"], channels:["ticker"]}], function(m){ if (m.type === "ticker" && m.best_bid) { var ex = Date.parse(m.time); push("cb", ex, (+m.best_bid + +m.best_ask)/2); var d = Date.now() - ex; if (isFinite(d)) { S.offs.push(d); if (S.offs.length > 300) S.offs.shift(); S.off = Math.min.apply(null, S.offs); } } });
+}
+function seedVol(){
+  fetch(CBREST + "products/ETH-USD/candles?granularity=60").then(function(r){ return r.json(); }).then(function(rows){
+    if (!Array.isArray(rows)) return; rows.sort(function(a,b){ return a[0]-b[0]; }); var v = null;
+    for (var i=1;i<rows.length;i++){ if (rows[i][0] - rows[i-1][0] !== 60) continue; var r = Math.log(rows[i][4]/rows[i-1][4]); v = v === null ? r*r : Core.LAM*v + (1-Core.LAM)*r*r; S.cbCandles.set(rows[i][0]*1000, rows[i][4]); }
+    if (v) S.ewVar = v;
+  }).catch(function(){ setTimeout(seedVol, 10000); });
+}
+
+/* ---------- helpers ---------- */
+function atIdx(arr, idx, T, maxAge){ var lo = 0, hi = arr.length-1, a = -1; while (lo <= hi){ var m = (lo+hi) >> 1; if (arr[m][idx] <= T){ a = m; lo = m+1; } else hi = m-1; } return a < 0 || T - arr[a][idx] > (maxAge || 3000) ? null : arr[a][2]; }
+function basis(key, M){ var a = S.feeds[key], s = 0, n = 0; for (var T = M-60000; T <= M; T += 1000){ var r = S.raw.get(T), p = atIdx(a, 0, T); if (r && p){ s += Math.log(p/r); n++; } } return n >= 15 ? s/n : null; }
+function fmt(x, d){ return x == null || !isFinite(x) ? "--" : x.toLocaleString("en-US", {minimumFractionDigits: d == null ? 2 : d, maximumFractionDigits: d == null ? 2 : d}); }
+function sgn(x, d){ return x == null || !isFinite(x) ? "--" : (x >= 0 ? "+" : "−") + Math.abs(x).toFixed(d == null ? 2 : d); }
+function mmss(s){ s = Math.max(0, Math.ceil(s)); return Math.floor(s/60) + ":" + ("0" + (s % 60)).slice(-2); }
+function setTxt(id, t){ var e = $(id); if (e.textContent !== t) e.textContent = t; }
+function setCls(id, c){ var e = $(id); if (e.className !== c) e.className = c; }
+function strikeFor(ws){
+  var c = S.candles1m.get(ws - 60000); if (c != null) return {K: c, src: "kalshi"};
+  var a = S.avg.get(ws - 1000); if (a != null) return {K: a, src: "kalshi"};
+  return null;
+}
+
+/* ---------- model ---------- */
+function compute(){
+  var t = Date.now() - S.off, ws = Math.floor(t/WIN)*WIN;
+  if (!S.win || S.win.ws !== ws) S.win = {ws: ws, end: ws + WIN, K: null, series: []};
+  var win = S.win, st = strikeFor(ws); if (st) win.K = st.K;
+  var M = S.lastM, R = M ? S.raw.get(M) : null, key = perpKey(), a = S.feeds[key];
+  var pNow = a.length ? a[a.length-1][2] : null, pFresh = Date.now() - S.fresh[key] < 5000, b = M ? basis(key, M) : null;
+  var g = R && pNow && pFresh && b != null ? Math.log(pNow/R) - b : null;
+  var Snow = R ? R*Math.exp(BETA*(g || 0)) : null;
+  var m = {M: M, R: R, g: g, Snow: Snow, perpAdj: pNow && b != null ? pNow*Math.exp(-b) : null, age: M ? (t - M)/1000 : null, b: b};
+  if (Snow && win.K) {
+    var elapsed = (t - ws)/1000, tau = (win.end - END_LAG - t)/1000, expFinal = Snow, tauEff = tau, sigMin = Math.sqrt(S.ewVar || 25e-8);
+    var mi = Math.floor(t/60000)*60000, prev = S.cbCandles.get(mi - 60000); if (prev) { var rc = Math.log(Snow/prev); sigMin = Math.sqrt(Math.max(sigMin*sigMin, Core.LAM*sigMin*sigMin + (1-Core.LAM)*rc*rc)); }
+    if (tau <= 60) { var s = 0, n = 0; for (var T = win.end - 60000; T <= Math.min(M, win.end - END_LAG); T += 1000){ var v = S.raw.get(T); if (v != null){ s += v; n++; } } var gap = Math.max(0, Math.round((win.end - END_LAG - M)/1000)); var rem = Math.max(0, 60 - n); expFinal = n ? (s + Snow*rem)/60 : Snow; tauEff = Math.min(rem, gap); m.avgN = n; }
+    var h1 = S.cbCandles.get(mi - 3660000), h = h1 ? Math.log(Snow/h1)/(sigMin*Math.sqrt(60)) : 0;
+    var r = Core.prob({expFinal: expFinal, strike: win.K, tau: tauEff, sigMin: sigMin, h: h, elapsed: elapsed});
+    m.p = r.p; m.z = r.z; m.sdAbs = Snow*r.sd; m.sigMin = sigMin; m.expFinal = expFinal; m.tau = tau;
+    var sec = Math.floor(t/1000)*1000; if (!win.series.length || win.series[win.series.length-1][0] !== sec) win.series.push([sec, r.p]);
+  }
+  S.model = m;
+}
+
+/* ---------- live lead-lag measurement ---------- */
+function measure(){
+  var key = perpKey(), a = S.feeds[key], pubs = S.pubs, out = {rows: [], x: [], n: pubs.length, key: key};
+  if (pubs.length < 20 || a.length < 50) return out;
+  var loc = a.slice().sort(function(p, q){ return p[1] - q[1]; }), ex = a;
+  var J = [1,2,3,4,5,6,7,8,9,10], rows = {}, beyond = [], bcache = {};
+  J.forEach(function(j){ rows[j] = []; });
+  pubs.forEach(function(pb, i){
+    var M = pb[0], L = pb[1], r0 = S.raw.get(M), p = atIdx(loc, 1, L, 2000); if (!r0 || !p) return;
+    var b = bcache[M] != null ? bcache[M] : (bcache[M] = basis(key, M)); if (b == null) return;
+    var g = 1e4*(Math.log(p/r0) - b);
+    J.forEach(function(j){ var step = j <= 2 ? 1 : j <= 5 ? 2 : 4; if (i % step) return; var rj = S.raw.get(M + j*1000); if (rj != null) rows[j].push([g, 1e4*Math.log(rj/r0)]); });
+    if (i % 4 === 0) { var ra = S.raw.get(M + 4000), rb = S.raw.get(M + 10000); if (ra != null && rb != null) beyond.push([g, 1e4*Math.log(rb/ra)]); }
+  });
+  J.forEach(function(j){ var f = Core.ols(rows[j]); if (f) out.rows.push([j, f]); });
+  out.beyond = Core.ols(beyond);
+  // event-time cross-correlation of 1 s returns
+  var Ts = []; S.raw.forEach(function(v, T){ Ts.push(T); }); Ts.sort(function(p, q){ return p - q; });
+  [-1,0,1,2,3,4,5].forEach(function(k){ var xs = [], ys = []; for (var i=0;i<Ts.length;i++){ var T = Ts[i], r0 = S.raw.get(T-1000); if (r0 == null) continue; var p0 = atIdx(ex, 0, T-1000-k*1000), p1 = atIdx(ex, 0, T-k*1000); if (p0 == null || p1 == null) continue; ys.push(Math.log(S.raw.get(T)/r0)); xs.push(Math.log(p1/p0)); } var c = Core.corr(xs, ys); out.x.push([k, c, xs.length]); });
+  // age of the reference
+  var ages = []; for (var i=1;i<pubs.length;i++){ var gapMs = pubs[i][1] - pubs[i-1][1]; if (gapMs > 10000) continue; for (var u=0; u<gapMs; u+=200) ages.push((pubs[i-1][1] + u - S.off) - pubs[i-1][0]); }
+  ages.sort(function(p, q){ return p - q; }); if (ages.length) out.age = [ages[Math.floor(.1*ages.length)], ages[Math.floor(.5*ages.length)], ages[Math.floor(.9*ages.length)]];
+  return out;
+}
+function renderStats(o){
+  var span = S.pubs.length ? (S.pubs[S.pubs.length-1][0] - S.pubs[0][0])/60000 : 0;
+  setTxt("llN", o.n + " publications, " + span.toFixed(0) + " min");
+  if (!o.rows.length) return;
+  var best = null; o.rows.forEach(function(r){ if (!best || r[1].r2 > best[1].r2) best = r; });
+  var h = "<div class=\"scroll\"><table><thead><tr><th>Seconds ahead</th><th class=\"r\">Direction right</th><th class=\"r\">R²</th><th class=\"r\">β</th><th class=\"r\">t</th></tr></thead><tbody>";
+  o.rows.forEach(function(r){ var f = r[1], w = Core.wilson(f.hit, f.m); h += "<tr" + (r === best ? " class=\"hl\"" : "") + "><td>+" + r[0] + " s</td><td class=\"num\">" + (f.m ? (100*f.hit/f.m).toFixed(0) + "% <span class=\"note\">" + (100*w[0]).toFixed(0) + " to " + (100*w[1]).toFixed(0) + "</span>" : "--") + "</td><td class=\"num\">" + f.r2.toFixed(2) + "</td><td class=\"num\">" + f.b.toFixed(2) + "</td><td class=\"num\">" + f.t.toFixed(1) + "</td></tr>"; });
+  if (o.beyond) h += "<tr><td>+4 to +10 s</td><td class=\"num\">" + (o.beyond.m ? (100*o.beyond.hit/o.beyond.m).toFixed(0) + "%" : "--") + "</td><td class=\"num\">" + o.beyond.r2.toFixed(2) + "</td><td class=\"num\">" + o.beyond.b.toFixed(2) + "</td><td class=\"num\">" + o.beyond.t.toFixed(1) + "</td></tr>";
+  h += "</tbody></table></div>";
+  h += "<p class=\"note\">Each row asks: when a Kalshi value lands, does the perp's gap from it predict the next published seconds? +1 to +2 s rows use every publication; +3 to +5 s every second one; +6 s and beyond every fourth, so samples don't overlap. The last row tests what is left once the delay has passed; |t| under 2 means no lead beyond the delay.</p>";
+  h += "<div class=\"scroll\"><table><thead><tr><th>Perp shifted by</th>";
+  o.x.forEach(function(x){ h += "<th class=\"r\">" + (x[0] > 0 ? "+" : "") + x[0] + " s</th>"; }); h += "</tr></thead><tbody><tr><td>Correlation</td>";
+  o.x.forEach(function(x){ h += "<td class=\"num\">" + (x[1] == null ? "--" : x[1].toFixed(2)) + "</td>"; }); h += "</tr></tbody></table></div>";
+  var n0 = o.x.length ? o.x[1][2] : 0;
+  h += "<p class=\"note\">Correlation of 1-second moves on the index's own clock. A true lead shows up at +1 s or later; with " + n0 + " seconds, anything under " + (n0 ? (2/Math.sqrt(n0)).toFixed(2) : "--") + " is noise." + (o.age ? " Reference age: median " + (o.age[1]/1000).toFixed(1) + " s, 10th to 90th percentile " + (o.age[0]/1000).toFixed(1) + " to " + (o.age[2]/1000).toFixed(1) + " s." : "") + "</p>";
+  $("llBody").innerHTML = h;
+}
+
+/* ---------- render ---------- */
+var css = {};
+function readCss(){ var st = getComputedStyle(document.documentElement); ["--ink","--muted","--line","--accent","--perp","--sunk"].forEach(function(k){ css[k] = st.getPropertyValue(k).trim(); }); }
+function chip(id, label, last, maxAge, extra){ var ok = last && Date.now() - last < maxAge; setCls(id, "chip " + (ok ? "ok" : last ? "bad" : "")); $(id).lastElementChild.textContent = label + (ok ? (extra || " live") : last ? " stalled" : " connecting"); }
+function render(){
+  var win = S.win, m = S.model; if (!win || !m) return;
+  var t = Date.now() - S.off, tau = (win.end - t)/1000; setTxt("tLeft", mmss(tau));
+  var a = new Date(win.ws), b = new Date(win.end), o = {hour: "numeric", minute: "2-digit"};
+  setTxt("winLabel", "Kalshi ETH 15 min · " + a.toLocaleTimeString([], o) + " to " + b.toLocaleTimeString([], o));
+  var names = {okx: "OKX perp", krf: "Kraken perp", cb: "Coinbase spot"};
+  chip("chipRef", "Kalshi reference", S.fresh.ref, 12000, m.age != null ? " · " + m.age.toFixed(1) + " s old" : " live");
+  chip("chipPerp", names[perpKey()], S.fresh[perpKey()], 6000); chip("chipCb", "Coinbase", S.fresh.cb, 8000);
+  setTxt("kVal", fmt(win.K)); setTxt("refVal", fmt(m.R)); setTxt("refAge", m.age != null ? m.age.toFixed(1) + " s old" : "");
+  setTxt("nowVal", fmt(m.Snow)); setTxt("leadVal", m.g == null ? "--" : (m.Snow >= m.R ? "+$" : "\u2212$") + Math.abs(m.Snow - m.R).toFixed(2) + " (" + sgn(1e4*BETA*m.g, 1) + " bp)");
+  if (m.p == null) { setTxt("says", m.R ? "Waiting for the target." : "Connecting to Kalshi's price file."); return; }
+  var p = Math.min(0.999, Math.max(0.001, m.p)), gap = m.expFinal - win.K;
+  setTxt("pUp", (100*p).toFixed(1)); $("barUp").style.width = (100*p).toFixed(2) + "%"; setTxt("barUpL", (100*p).toFixed(1) + "%"); setTxt("barDnL", (100*(1-p)).toFixed(1) + "%");
+  var lean = p >= 0.55 ? ["up", p >= 0.9 ? "Strongly Up" : "Leans Up"] : p <= 0.45 ? ["down", p <= 0.1 ? "Strongly Down" : "Leans Down"] : ["", "Coin flip"];
+  setCls("lean", "lean " + lean[0]); setTxt("lean", lean[1]);
+  setTxt("zVal", sgn(m.z, 2)); setTxt("volVal", (1e4*m.sigMin).toFixed(1));
+  setTxt("says", m.avgN != null
+    ? "Settlement average is forming: " + m.avgN + " of 60 seconds are in. Projected result " + fmt(m.expFinal) + ", " + (gap >= 0 ? "above" : "below") + " the target by $" + Math.abs(gap).toFixed(2) + "; it can still move about ±$" + m.sdAbs.toFixed(2) + "."
+    : "Perp-implied ETH is $" + Math.abs(gap).toFixed(2) + " " + (gap >= 0 ? "above" : "below") + " the target with " + mmss(tau) + " left. A typical move before settlement is ±$" + m.sdAbs.toFixed(2) + ", so the gap is " + Math.abs(m.z).toFixed(1) + " of those.");
+  // throttle
+  var span = Math.max(2, 2*m.sdAbs), pos = function(x){ return x == null ? 50 : Math.max(0, Math.min(100, 50 + 50*(x - win.K)/span)); };
+  $("mkRef").style.left = pos(m.R).toFixed(2) + "%"; $("mkPerp").style.left = pos(m.Snow).toFixed(2) + "%";
+  setTxt("thrLo", "−$" + span.toFixed(2)); setTxt("thrHi", "+$" + span.toFixed(2));
+  // market
+  var au = parseFloat($("askUp").value)/100, ad = parseFloat($("askDn").value)/100;
+  var eu = au > 0 && au < 1 ? p - au - Core.fee(au) : null, ed = ad > 0 && ad < 1 ? (1-p) - ad - Core.fee(ad) : null;
+  setTxt("upAsk", au > 0 && au < 1 ? (100*au).toFixed(0) + "¢" : "--"); setTxt("dnAsk", ad > 0 && ad < 1 ? (100*ad).toFixed(0) + "¢" : "--");
+  setTxt("upFair", (100*p).toFixed(1) + "¢"); setTxt("dnFair", (100*(1-p)).toFixed(1) + "¢");
+  setTxt("upEdge", eu == null ? "--" : sgn(100*eu, 1) + "¢"); setCls("upEdge", "num " + (eu == null ? "" : eu > 0 ? "pos" : "neg"));
+  setTxt("dnEdge", ed == null ? "--" : sgn(100*ed, 1) + "¢"); setCls("dnEdge", "num " + (ed == null ? "" : ed > 0 ? "pos" : "neg"));
+}
+function draw(){
+  var cv = $("cvLead"), dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight; if (!w) return;
+  if (cv.width !== Math.round(w*dpr)) { cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr); }
+  var g = cv.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h); readCss();
+  var t1 = Date.now() - S.off, t0 = t1 - 90000, key = perpKey(), b = S.model && S.model.b, ref = [], per = [];
+  S.raw.forEach(function(v, T){ if (T >= t0) ref.push([T, v]); }); ref.sort(function(p, q){ return p[0]-q[0]; });
+  if (b != null) S.feeds[key].forEach(function(r){ if (r[0] >= t0) per.push([r[0], r[2]*Math.exp(-b)]); });
+  var lo = Infinity, hi = -Infinity; ref.concat(per).forEach(function(p){ if (p[1] < lo) lo = p[1]; if (p[1] > hi) hi = p[1]; });
+  var K = S.win && S.win.K; if (K && isFinite(lo) && Math.abs(K - (lo+hi)/2) < 3*(hi - lo + 2)) { lo = Math.min(lo, K); hi = Math.max(hi, K); }
+  if (!isFinite(lo)) return; var pad = Math.max((hi-lo)*0.15, 0.5); lo -= pad; hi += pad;
+  var x0 = 64, x1 = w - 10, y0 = 10, y1 = h - 24, X = function(T){ return x0 + (x1-x0)*(T-t0)/90000; }, Y = function(v){ return y1 - (y1-y0)*(v-lo)/(hi-lo); };
+  g.font = "11px " + getComputedStyle(document.body).getPropertyValue("--mono"); g.strokeStyle = css["--line"]; g.fillStyle = css["--muted"]; g.lineWidth = 1;
+  var step = (hi-lo) > 20 ? 5 : (hi-lo) > 8 ? 2 : (hi-lo) > 4 ? 1 : 0.5; g.textAlign = "right"; g.textBaseline = "middle";
+  for (var v = Math.ceil(lo/step)*step; v <= hi; v += step){ var yy = Math.round(Y(v))+0.5; g.beginPath(); g.moveTo(x0, yy); g.lineTo(x1, yy); g.stroke(); g.fillText(fmt(v), x0-6, yy); }
+  g.textAlign = "center"; g.textBaseline = "top"; [90,60,30,0].forEach(function(s){ g.fillText(s ? "−" + s + "s" : "now", Math.min(x1-12, X(t1 - s*1000)), y1+6); });
+  function line(pts, color, wd, dash){ if (!pts.length) return; g.save(); g.strokeStyle = color; g.lineWidth = wd; g.setLineDash(dash || []); g.beginPath(); pts.forEach(function(p, i){ var xx = X(p[0]), yy = Y(p[1]); if (i) g.lineTo(xx, yy); else g.moveTo(xx, yy); }); g.stroke(); g.restore(); }
+  if (K && K > lo && K < hi) line([[t0, K], [t1, K]], css["--muted"], 1.5, [5,4]);
+  line(per, css["--perp"], 1.75); line(ref, css["--accent"], 2.25);
+  if (ref.length) { var lp = ref[ref.length-1]; g.fillStyle = css["--accent"]; g.beginPath(); g.arc(X(lp[0]), Y(lp[1]), 3.5, 0, 6.2832); g.fill(); }
+}
+function tick(){ S.lastTick = Date.now(); try { compute(); render(); } catch(e){ console.error(e); } if (Date.now() - S.lastStats > 5000) { S.lastStats = Date.now(); try { renderStats(measure()); } catch(e){ console.error(e); } } }
+
+/* ---------- demo feed (open with #demo) ---------- */
+function startDemo(){
+  $("demoChip").hidden = false; var rnd = function(){ var u = 0; for (var i=0;i<6;i++) u += Math.random(); return (u-3)/Math.sqrt(0.5); };
+  var now = Date.now(), T0 = Math.floor(now/1000)*1000 - 1200000, px = 2707, path = [], i, sig = 5e-4/Math.sqrt(60);
+  for (i=0;i<=1200;i++){ px *= Math.exp(sig*rnd()); path.push([T0 + i*1000, Math.round(px*100)/100]); }
+  S.ewVar = 25e-8; for (i=0;i<path.length;i+=60) S.cbCandles.set(Math.floor(path[i][0]/60000)*60000, path[i][1]);
+  var cur = px;
+  setInterval(function(){ cur *= Math.exp(sig*0.25*rnd()); var tt = Date.now(); push("okx", tt - S.off, cur*1.0004); push("krf", tt - S.off, cur); push("cb", tt - S.off, cur*0.99998); }, 250);
+  setInterval(function(){ var tt = Date.now() - S.off, Tend = Math.floor((tt - 1200)/1000)*1000; while (path[path.length-1][0] < Tend) { var last = path[path.length-1][0] + 1000; var p = atIdx(S.feeds.krf, 0, last, 5000) || path[path.length-1][1]; path.push([last, Math.round(p*100)/100]); }
+    var tail = path.slice(-120), adj = [], ts = []; for (var k=60;k<120;k++){ var s = 0; for (var q=k-59;q<=k;q++) s += tail[q][1]; ts.push(s/60); adj.push(tail[k][1]); }
+    var M = tail[119][0], c = {}; c["1M"] = []; for (var mm = Math.floor(path[0][0]/60000)*60000 + 60000; mm < M; mm += 60000){ var s2 = 0, n2 = 0; for (var q2=0;q2<path.length;q2++) if (path[q2][0] > mm && path[q2][0] <= mm + 60000){ s2 += path[q2][1]; n2++; } if (n2 === 60) c["1M"].push({open_ts_ms: mm, close: s2/60}); }
+    ingest({maturity_ts_ms: M, timeseries: ts, timeseries_adjusted: adj, candlesticks: c}, Date.now()); nudge(); }, 2500);
+}
+
+/* ---------- boot ---------- */
+$("perpSel").addEventListener("change", function(){ S.lastStats = 0; });
+if (DEMO) startDemo(); else { connectAll(); seedVol(); setInterval(seedVol, 300000); }
+setInterval(poll, 1000); setInterval(tick, 250); setInterval(function(){ try { draw(); } catch(e){ console.error(e); } }, 1000);
+window.addEventListener("resize", draw);
+window.__app = S;
+})();
+</script>
+</body>
+</html>

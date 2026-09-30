@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ETH 15m Tools</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ETH 15m">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#434fcf">
+<style>
+:root{--bg:#f3f4f9;--surface:#fff;--ink:#151a2d;--muted:#5a6182;--line:#d9dcea;--accent:#434fcf;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0e1120;--surface:#161a2e;--ink:#e7e9f7;--muted:#979ec0;--line:#2b3153;--accent:#909aff;color-scheme:dark}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:560px;margin:0 auto;padding:32px 20px 48px;display:flex;flex-direction:column;gap:16px}
+h1{font-size:22px;margin:0}p{margin:0;color:var(--muted);font-size:14.5px}
+a.card{display:block;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px}
+a.card:hover,a.card:focus-visible{border-color:var(--accent);outline:none}
+a.card b{display:block;font-size:18px;margin-bottom:4px}a.card span{color:var(--muted);font-size:14px}
+.tip{font-size:13.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ETH 15m Tools</h1>
+  <p>Live fair value for the 15-minute Ethereum Up/Down markets. Each tool connects to the price feeds from your own browser.</p>
+  <a class="card" href="eth15m-kalshi-lead.html"><b>ETH Kalshi</b><span>Kalshi ETH 15 min: probability, target throttle, and the perp lead measured live.</span></a>
+  <a class="card" href="eth15m-fair-value.html"><b>ETH Polymarket</b><span>Polymarket ETH Up or Down: probability against the order book, with a live scorecard.</span></a>
+  <p class="tip">On an iPad, open a tool in Safari, tap Share, then Add to Home Screen. Keep the tool on screen while it runs; a hidden tab pauses and its live statistics start over.</p>
+</div>
+</body>
+</html>

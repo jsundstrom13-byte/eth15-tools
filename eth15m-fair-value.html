@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ETH Poly">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
+<title>ETH 15m Fair Value</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one working screen. Left column = the call (probability, strike, path). Right column = the market and the inputs behind the call. Evidence sits below. */
+:root{
+  --bg:#f3f4f9; --surface:#ffffff; --sunk:#eceef6; --ink:#151a2d; --muted:#5a6182; --line:#d9dcea;
+  --accent:#434fcf; --up:#0b8a69; --down:#cf432d; --warn:#9a6708;
+  --up-soft:#d9f1ea; --down-soft:#fae0da; --accent-soft:#e3e6fb;
+  --sans:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --bg:#0e1120; --surface:#161a2e; --sunk:#1d2239; --ink:#e7e9f7; --muted:#979ec0; --line:#2b3153;
+  --accent:#909aff; --up:#3ecfa4; --down:#ff806a; --warn:#e2b257;
+  --up-soft:#143a33; --down-soft:#45211c; --accent-soft:#262c58; color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --bg:#0e1120; --surface:#161a2e; --sunk:#1d2239; --ink:#e7e9f7; --muted:#979ec0; --line:#2b3153;
+  --accent:#909aff; --up:#3ecfa4; --down:#ff806a; --warn:#e2b257;
+  --up-soft:#143a33; --down-soft:#45211c; --accent-soft:#262c58; color-scheme:dark; }
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1200px;margin:0 auto;padding-inline:20px;padding-block:20px 56px;display:flex;flex-direction:column;gap:16px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+h1{font-size:20px;line-height:1.2;margin:0;font-weight:700;letter-spacing:-.01em}
+h2{font-size:12px;margin:0;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h3{font-size:15px;margin:0;font-weight:600}
+p{margin:0}
+.top{display:flex;flex-wrap:wrap;gap:10px 20px;align-items:center;justify-content:space-between}
+.top .sub{color:var(--muted);font-size:14px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;background:var(--sunk);color:var(--muted);font-size:12.5px;white-space:nowrap}
+.chip i{width:7px;height:7px;border-radius:50%;background:var(--muted);opacity:.5}
+.chip.ok{color:var(--ink)} .chip.ok i{background:var(--up);opacity:1}
+.chip.bad i{background:var(--down);opacity:1}
+.chip.demo{background:var(--warn);color:var(--bg);font-weight:600}
+.grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;align-items:start}
+.col{display:flex;flex-direction:column;gap:16px;min-width:0}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.panel>header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 12px}
+.note{color:var(--muted);font-size:13px}
+/* hero */
+.call{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 24px}
+.pbig{font:600 64px/1 var(--mono);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.pbig small{font-size:22px;font-weight:500;margin-left:4px;letter-spacing:0;color:var(--muted)}
+.plabel{font-size:13px;color:var(--muted);margin-bottom:6px}
+.clock{text-align:right}
+.clock .t{font:600 34px/1 var(--mono);font-variant-numeric:tabular-nums}
+.lean{display:inline-block;padding:2px 10px;border-radius:6px;font-weight:600;font-size:13px;background:var(--sunk);color:var(--muted)}
+.lean.up{background:var(--up-soft);color:var(--up)} .lean.down{background:var(--down-soft);color:var(--down)}
+.bar{position:relative;height:14px;border-radius:7px;background:var(--down);overflow:hidden}
+.bar b{position:absolute;inset:0 auto 0 0;background:var(--up);width:50%;transition:width .25s linear}
+.bar:after{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--surface);opacity:.85}
+.barlab{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted)}
+.says{font-size:15px}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:12px 16px;border-top:1px solid var(--line);padding-top:12px}
+.kv div{min-width:0}
+.kv dt{font-size:12px;color:var(--muted)}
+.kv dd{margin:0;font:500 16px/1.35 var(--mono);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.kv dd small{font-size:12px;color:var(--muted);font-weight:400}
+dl{margin:0}
+.pos{color:var(--up)} .neg{color:var(--down)}
+.strike{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+input[type=number]{font:500 14px var(--mono);color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:5px 8px;width:112px}
+input[type=number]:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+button{font:500 13px var(--sans);color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:5px 10px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+.badge{font-size:11.5px;padding:1px 7px;border-radius:5px;background:var(--accent-soft);color:var(--accent);font-weight:600;white-space:nowrap}
+.badge.warn{background:var(--sunk);color:var(--warn)}
+canvas{display:block;width:100%;height:230px}
+canvas.short{height:170px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--muted)}
+.legend span:before{content:"";display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle;background:var(--c)}
+/* tables */
+.scroll{overflow-x:auto;min-width:0}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th{font-weight:600;font-size:12px;color:var(--muted);text-align:left;padding:6px 10px 6px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:7px 10px 7px 0;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.num,th.r{text-align:right;white-space:nowrap}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.tag{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 7px;border-radius:5px;white-space:nowrap}
+.tag.core{background:var(--accent-soft);color:var(--accent)}
+.tag.small{background:var(--up-soft);color:var(--up)}
+.tag.none{background:var(--sunk);color:var(--muted)}
+.mkt td:first-child{font-weight:600}
+.over{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-size:13px;color:var(--muted)}
+.over input{width:84px}
+.empty{padding:14px;border:1px dashed var(--line);border-radius:8px;color:var(--muted);font-size:13.5px}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
+.stack{display:flex;flex-direction:column;gap:16px}
+table.wide{min-width:620px}
+.prose{max-width:68ch;color:var(--ink);font-size:14.5px}
+.prose+.prose{margin-top:-4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>ETH 15m Fair Value</h1>
+      <div class="sub" id="winLabel">Ethereum Up or Down, 15-minute window</div>
+    </div>
+    <div class="chips">
+      <span class="chip demo" id="demoChip" hidden>Demo data</span>
+      <span class="chip" id="chipOracle"><i></i><span>Oracle</span></span>
+      <span class="chip" id="chipCb"><i></i><span>Coinbase</span></span>
+      <span class="chip" id="chipMkt"><i></i><span>Market</span></span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="col">
+      <section class="panel" aria-live="off">
+        <div class="call">
+          <div>
+            <div class="plabel">Probability this window settles Up</div>
+            <div class="pbig"><span id="pUp">--</span><small>%</small></div>
+          </div>
+          <div class="clock">
+            <div class="plabel">Time left</div>
+            <div class="t" id="tLeft">--:--</div>
+            <div style="margin-top:8px"><span class="lean" id="lean">Waiting for data</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="bar"><b id="barUp"></b></div>
+          <div class="barlab"><span>Up <span class="num" id="barUpL">--</span></span><span>Down <span class="num" id="barDnL">--</span></span></div>
+        </div>
+        <p class="says" id="says">Connecting to the price feeds.</p>
+        <dl class="kv">
+          <div><dt>Price to beat</dt><dd><span id="kVal">--</span></dd></div>
+          <div><dt>Price now</dt><dd><span id="sVal">--</span></dd></div>
+          <div><dt>Gap to strike</dt><dd><span id="gapVal">--</span></dd></div>
+          <div><dt>Distance</dt><dd><span id="zVal">--</span> <small>sigma</small></dd></div>
+          <div><dt>Volatility</dt><dd><span id="volVal">--</span> <small>bp/min</small></dd></div>
+          <div><dt>Hour trend</dt><dd><span id="hVal">--</span> <small>sigma</small></dd></div>
+        </dl>
+        <div class="strike">
+          <span class="badge" id="kBadge">strike pending</span>
+          <label for="strikeIn">Set the price to beat by hand</label>
+          <input type="number" id="strikeIn" step="0.01" min="0" placeholder="auto" inputmode="decimal">
+          <button id="strikeClear" type="button">Use auto</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <header><h2>Price against the strike</h2><div class="legend"><span style="--c:var(--accent)">Oracle price</span><span style="--c:var(--muted)">Price to beat</span><span style="--c:var(--line)">Shaded: the 60 s averaged for settlement</span></div></header>
+        <canvas id="cvPrice" role="img" aria-label="Oracle price through the current window against the price to beat"></canvas>
+      </section>
+
+      <section class="panel">
+        <header><h2>Model against the market</h2><div class="legend"><span style="--c:var(--accent)">Model P(Up)</span><span style="--c:var(--warn)">Market mid</span></div></header>
+        <canvas id="cvProb" class="short" role="img" aria-label="Model probability and market price through the current window"></canvas>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="panel">
+        <header><h2>Market</h2><span class="note" id="mktNote">Polymarket order book</span></header>
+        <div class="scroll">
+        <table class="mkt">
+          <thead><tr><th>Side</th><th class="r">Bid</th><th class="r">Ask</th><th class="r">Model</th><th class="r">Edge after fee</th></tr></thead>
+          <tbody>
+            <tr><td>Up</td><td class="num" id="upBid">--</td><td class="num" id="upAsk">--</td><td class="num" id="upFair">--</td><td class="num" id="upEdge">--</td></tr>
+            <tr><td>Down</td><td class="num" id="dnBid">--</td><td class="num" id="dnAsk">--</td><td class="num" id="dnFair">--</td><td class="num" id="dnEdge">--</td></tr>
+          </tbody>
+        </table>
+        </div>
+        <p class="note">Edge = model probability minus the ask minus the taker fee, 0.07 &times; p &times; (1 &minus; p) per share (1.75&cent; at 50&cent;). Kalshi uses the same fee curve.</p>
+        <div class="over">
+          <span>Other venue? Type its asks:</span>
+          <label for="askUpIn">Up</label><input type="number" id="askUpIn" step="0.01" min="0.01" max="0.99" placeholder="auto" inputmode="decimal">
+          <label for="askDnIn">Down</label><input type="number" id="askDnIn" step="0.01" min="0.01" max="0.99" placeholder="auto" inputmode="decimal">
+        </div>
+      </section>
+
+      <section class="panel">
+        <header><h2>What drives the call</h2></header>
+        <div class="scroll">
+        <table>
+          <thead><tr><th>Input</th><th class="r">Now</th><th>Weight</th></tr></thead>
+          <tbody>
+            <tr><td>Distance to strike, in units of remaining movement</td><td class="num" id="sgZ">--</td><td><span class="tag core">core</span></td></tr>
+            <tr><td>Volatility, 20-minute memory</td><td class="num" id="sgVol">--</td><td><span class="tag core">core</span></td></tr>
+            <tr><td>Remaining movement before settlement</td><td class="num" id="sgSd">--</td><td><span class="tag core">core</span></td></tr>
+            <tr><td>Last-hour trend, tends to reverse</td><td class="num" id="sgH">--</td><td><span class="tag small">small</span></td></tr>
+            <tr><td>Coinbase lead over the oracle feed</td><td class="num" id="sgLead">--</td><td><span class="tag small">nowcast</span></td></tr>
+            <tr><td>Trade flow, last 60 s</td><td class="num" id="sgFlow">--</td><td><span class="tag none">watch only</span></td></tr>
+            <tr><td>Order-book imbalance, &plusmn;5 bp</td><td class="num" id="sgObi">--</td><td><span class="tag none">watch only</span></td></tr>
+          </tbody>
+        </table>
+        </div>
+        <p class="note" id="srcNote">Price source: waiting.</p>
+      </section>
+    </div>
+  </div>
+
+  <section class="panel">
+    <header><h2>Live scorecard</h2><span><span class="note" id="scoreN"></span> <button id="logReset" type="button">Erase log</button></span></header>
+    <div id="scoreBody"></div>
+  </section>
+
+  <section class="panel">
+    <header><h2>What the data says</h2><span class="note">180 days to 30 Sep 2026 &middot; 17,180 windows &middot; 5,199 official Polymarket settlements</span></header>
+    <p class="prose">One variable does nearly all the work: how far the oracle price sits from the price to beat, measured against how much it can still move. Everything else that looks predictive on its own, such as momentum, trade flow and Bitcoin, mostly restates that the price has already moved. Against a market quote at least as fresh as the model's price, the model matched the market's accuracy and lost money to the fee.</p>
+    <div class="scroll">
+    <table class="wide">
+      <thead><tr><th>Variable</th><th>Measured</th><th>Use</th></tr></thead>
+      <tbody>
+        <tr><td>Distance to strike &divide; (volatility &times; &radic;time left)</td><td>Its sign alone calls the outcome 60.5% at minute 1, 71.3% at 5, 83.3% at 10, 91.6% at 13 (n = 17,180 each)</td><td><span class="tag core">core</span></td></tr>
+        <tr><td>Settlement rule: 60-second average at both ends</td><td>Reading the rule as an average agrees with official outcomes 97.4% of the time; reading it as a point price, 93.1% (n = 5,199). Exact form: the official strike is the mean of the 60 oracle ticks stamped from 62 s to 3 s before the boundary. Checked on two strikes: one matched to 13 digits, the other to 0.001 bp</td><td><span class="tag core">core</span></td></tr>
+        <tr><td>Volatility memory</td><td>20-minute exponential memory: log-loss 0.4661. 24-hour volatility: 0.4781 (120,260 out-of-sample calls)</td><td><span class="tag core">core</span></td></tr>
+        <tr><td>Fat tails</td><td>Student-t(4) curve beats the normal curve by 0.0016 log-loss, t = 4.4. Calls under 3%: 1.1% predicted, 1.4% realised (normal curve: 0.7% against 1.8%)</td><td><span class="tag core">core</span></td></tr>
+        <tr><td>Last-hour trend</td><td>The next window goes against the hour's direction 52.5% of the time (n = 17,141, z = 6.5); 52.5, 52.4, 52.6% in three 60-day thirds. Out of sample: +0.0015 log-loss, t = 2.5, minutes 0 to 8 only</td><td><span class="tag small">small</span></td></tr>
+        <tr><td>Coinbase lead over the oracle feed</td><td>The oracle's true move since its last received tick follows 0.72 &times; the move Coinbase implies (SE 0.01, n = 959 seconds). Applied at 0.65, it cuts the error of the current-price estimate from 2.4 bp to 1.0 bp (paired t = 5.1) and gets the direction right 597 times in 629. One 16-minute live sample, which included the 8:30 ET jump</td><td><span class="tag small">nowcast</span></td></tr>
+        <tr><td>Previous 15-minute return</td><td>51.5% reversal (z = 4.0) alone; z between &minus;2.2 and &minus;3.2 once distance is in the model, below the 3.34 bar for 60 tests</td><td><span class="tag none">dropped</span></td></tr>
+        <tr><td>Taker flow imbalance, 1, 5 and 15 minutes</td><td>|z| at most 1.7 at every minute mark once distance is in the model</td><td><span class="tag none">dropped</span></td></tr>
+        <tr><td>Bitcoin lead: BTC minus ETH over 5 minutes, BTC last minute</td><td>|z| at most 1.8</td><td><span class="tag none">dropped</span></td></tr>
+        <tr><td>Binance premium over Coinbase</td><td>|z| at most 1.8</td><td><span class="tag none">dropped</span></td></tr>
+        <tr><td>Hour of day</td><td>Chi-square 44.9 on 23 df (p = 0.004), but the hourly pattern in one half of the sample correlates only 0.34 with the other half (p = 0.11)</td><td><span class="tag none">dropped</span></td></tr>
+        <tr><td>Base rate</td><td>Up in 2,626 of 5,199 official windows, 50.5% (z = 0.74)</td><td><span class="tag none">none</span></td></tr>
+        <tr><td>The market's own price</td><td>Same accuracy as the model (81.3% against 81.5% at minute 9). Buying whenever the model disagreed by 5&cent; or more, at mid plus 1&cent; plus fee: &minus;2.3&cent; a share (t = &minus;4.8; 18,646 trades in 4,617 windows). At 12&cent; or more: &minus;1.2&cent; (t = &minus;1.2)</td><td><span class="tag none">benchmark</span></td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="note">With 17,180 windows a hit rate has a standard error of 0.38 points, so a true edge of 1.1 points is detected 80% of the time at p &lt; 0.05, or 1.6 points after correcting for 60 tests. Book imbalance has no free history, so it is scored live above instead.</p>
+    <div class="two">
+      <div>
+        <h3>Data feeds</h3>
+        <div class="scroll">
+        <table>
+          <thead><tr><th>Feed</th><th>Role</th><th>Measured</th></tr></thead>
+          <tbody>
+            <tr><td>Chainlink ETH/USD stream, through Polymarket's live-data socket</td><td>The settlement oracle: price, strike, final average</td><td>One tick a second, arriving 1.5 s late (1.1 to 1.9 s). The socket stalled once in 30 minutes, so the page reconnects after 9 quiet seconds</td></tr>
+            <tr><td>Coinbase ETH-USD book and trades</td><td>Bridges the 1.5 s lag; seeds volatility; fallback price</td><td>One-minute candles sit within 1.3 bp of the oracle average (n = 5,199); a one-second grid of trades, within 0.4 bp (n = 9)</td></tr>
+            <tr><td>Polymarket order book</td><td>Bid and ask, official strike and result</td><td>The official strike is published only when the window closes, so the page measures it from the oracle ticks</td></tr>
+            <tr><td>Binance ETHUSDT</td><td>Not used live</td><td>Sits 4.3 bp off the oracle (USDT basis)</td></tr>
+            <tr><td>Kalshi</td><td>Type its asks in the Market panel</td><td>Its API refuses browser pages</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+      <div>
+        <h3>The model</h3>
+        <p class="prose">P(Up) = T<sub>4</sub>(a &times; z + c &times; h). z is the log gap between the expected settlement average and the price to beat, divided by volatility &times; &radic;(seconds left &minus; 40); the 40 s accounts for settlement on a 60-second average, which ends 3 s before the close. Inside that minute the seconds already averaged are locked in. a rises from 1.19 at minute 1 to 1.59 at minute 13. h is the last-hour return in volatility units and c = &minus;0.095, fading to zero by minute 14. Volatility is a 20-minute exponential average of squared one-minute returns, raised at once when the current minute moves more than that. T<sub>4</sub> is the Student-t curve with 4 degrees of freedom.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script id="core">
+var Core = (function(){
+  var A = [0.97,1.19,1.21,1.26,1.24,1.26,1.33,1.38,1.41,1.44,1.46,1.50,1.53,1.59,1.59,1.59];
+  var C_H = -0.095, HL = 20, LAM = Math.pow(0.5, 1/HL), FEE = 0.07;
+  function t4(x){ var w = 1 + x*x/4; return 0.5 + 0.375*(x/Math.sqrt(w))*(1 - (x*x/w)/12); }
+  function scaleA(el){ var m = Math.max(0, Math.min(14.999, el/60)), i = Math.floor(m); return A[i] + (A[i+1]-A[i])*(m-i); }
+  function coefH(el){ var m = el/60; return m <= 9 ? C_H : m >= 14 ? 0 : C_H*(14-m)/5; }
+  // Relative SD of the settlement average given seconds still unobserved and per-second sigma.
+  function sdRel(tau, sigSec){ tau = Math.max(0, tau); return tau > 60 ? sigSec*Math.sqrt(tau-40) : (tau/60)*sigSec*Math.sqrt(tau/3); }
+  function prob(o){
+    var sd = sdRel(o.tau, o.sigMin/Math.sqrt(60)), d = Math.log(o.expFinal/o.strike);
+    var z = sd > 1e-12 ? d/sd : (d >= 0 ? 60 : -60);
+    z = Math.max(-60, Math.min(60, z));
+    var h = Math.max(-3, Math.min(3, o.h || 0));
+    var x = scaleA(o.elapsed)*z + coefH(o.elapsed)*h;
+    return {p: t4(x), z: z, x: x, sd: sd};
+  }
+  function fee(p){ return FEE*p*(1-p); }
+  function wilson(k, n){ if (!n) return [0,1]; var z = 1.96, ph = k/n, d = 1 + z*z/n, c = ph + z*z/(2*n), s = z*Math.sqrt(ph*(1-ph)/n + z*z/(4*n*n)); return [(c-s)/d, (c+s)/d]; }
+  function ewma(closes){ var v = null; for (var i=1;i<closes.length;i++){ var r = Math.log(closes[i]/closes[i-1]); v = v === null ? r*r : LAM*v + (1-LAM)*r*r; } return v; }
+  function ll(p, y){ p = Math.min(0.995, Math.max(0.005, p)); return y ? -Math.log(p) : -Math.log(1-p); }
+  function meanT(a){ var n = a.length; if (n < 2) return {n:n, mean: n ? a[0] : 0, t: 0}; var m = 0, i; for (i=0;i<n;i++) m += a[i]; m /= n; var v = 0; for (i=0;i<n;i++) v += (a[i]-m)*(a[i]-m); var se = Math.sqrt(v/(n-1)/n); return {n:n, mean:m, t: se > 0 ? m/se : 0}; }
+  function corrT(x, y){ var n = x.length; if (n < 4) return {n:n, r:0, t:0}; var mx=0,my=0,i; for (i=0;i<n;i++){ mx+=x[i]; my+=y[i]; } mx/=n; my/=n; var sxy=0,sxx=0,syy=0; for (i=0;i<n;i++){ sxy+=(x[i]-mx)*(y[i]-my); sxx+=(x[i]-mx)*(x[i]-mx); syy+=(y[i]-my)*(y[i]-my); } if (!(sxx>0) || !(syy>0)) return {n:n, r:0, t:0}; var r = sxy/Math.sqrt(sxx*syy); return {n:n, r:r, t: r*Math.sqrt((n-2)/Math.max(1e-9, 1-r*r))}; }
+  return {t4:t4, scaleA:scaleA, coefH:coefH, sdRel:sdRel, prob:prob, fee:fee, wilson:wilson, ewma:ewma, ll:ll, meanT:meanT, corrT:corrT, LAM:LAM};
+})();
+if (typeof module !== "undefined") module.exports = Core;
+</script>
+
+<script>
+(function(){
+"use strict";
+var DEMO = location.hash === "#demo";
+var WIN = 900000, CPS = [60, 300, 600, 840], LOGKEY = "eth15fv.log.v1";
+// Settlement at a boundary is the mean of the 60 oracle ticks stamped from 62 s to 3 s before it (matched to 13 digits against an official strike).
+var LAG = 3000;
+var GAMMA = "https://gamma-api.polymarket.com/", CLOB = "https://clob.polymarket.com/", CBREST = "https://api.exchange.coinbase.com/";
+function $(id){ return document.getElementById(id); }
+var S = { off: 0, offSamples: [], ticks: [], basis: null,
+  cb: {mid:null, bid:null, ask:null, tLocal:0, b:new Map(), a:new Map(), trades:[], hist:[], flow:null, obi:null},
+  minClose: new Map(), candles: new Map(), ewVar: null, curMin: null, lastPrimary: null, volSeeded: false,
+  win: null, mkt: {bid:null, ask:null, t:0, ws:0}, feed: {oracle:0, cb:0, mkt:0}, log: [], model: null, price: null, lastSeriesSec: -1 };
+function now(){ return Date.now() + S.off; }
+function clockSample(serverMs){ var d = serverMs - Date.now(); if (!isFinite(d)) return; S.offSamples.push(d); if (S.offSamples.length > 240) S.offSamples.shift(); var m = -Infinity; for (var i=0;i<S.offSamples.length;i++) if (S.offSamples[i] > m) m = S.offSamples[i]; S.off = m; }
+
+/* ---------- formatting ---------- */
+function fPx(x){ return x == null || !isFinite(x) ? "--" : x.toLocaleString("en-US", {minimumFractionDigits:2, maximumFractionDigits:2}); }
+function fPct(p, d){ return p == null || !isFinite(p) ? "--" : (100*p).toFixed(d == null ? 1 : d); }
+function fC(p){ return p == null || !isFinite(p) ? "--" : (100*p).toFixed(1) + "¢"; }
+function fSig(x, d){ return x == null || !isFinite(x) ? "--" : (x >= 0 ? "+" : "−") + Math.abs(x).toFixed(d == null ? 2 : d); }
+function mmss(sec){ sec = Math.max(0, Math.ceil(sec)); var m = Math.floor(sec/60), s = sec % 60; return m + ":" + (s < 10 ? "0" : "") + s; }
+function setTxt(id, t){ var e = $(id); if (e.textContent !== t) e.textContent = t; }
+function setCls(id, c){ var e = $(id); if (e.className !== c) e.className = c; }
+
+/* ---------- oracle ticks (Chainlink stream relayed by Polymarket) ---------- */
+function addTick(ts, v){
+  var n = S.ticks.length; if (!(v > 0) || (n && ts <= S.ticks[n-1][0])) return;
+  S.ticks.push([ts, v]); if (n > 2400) S.ticks.splice(0, 400);
+  var m = cbMidAt(ts); if (m) { var b = Math.log(v/m); S.basis = S.basis === null ? b : 0.92*S.basis + 0.08*b; }
+}
+function connectOracle(){
+  var ws, ping, dog, born = Date.now();
+  try { ws = new WebSocket("wss://ws-live-data.polymarket.com"); } catch(e){ return setTimeout(connectOracle, 3000); }
+  // The socket can go silent while staying open, so a quiet 9 s forces a reconnect; the feed replays the last minute on connect.
+  dog = setInterval(function(){ if (Date.now() - Math.max(S.feed.oracle, born) > 9000) { try { ws.close(); } catch(e){} } }, 3000);
+  ws.onopen = function(){ ws.send(JSON.stringify({action:"subscribe", subscriptions:[{topic:"crypto_prices_chainlink", type:"*", filters:"{\"symbol\":\"eth/usd\"}"}]})); ping = setInterval(function(){ try { ws.send("PING"); } catch(e){} }, 5000); };
+  ws.onmessage = function(ev){ if (!ev.data) return; var m; try { m = JSON.parse(ev.data); } catch(e){ return; } var p = m.payload; if (!p) return;
+    if (p.symbol && p.symbol !== "eth/usd") return;
+    if (Array.isArray(p.data)) { for (var i=0;i<p.data.length;i++) addTick(p.data[i].timestamp, p.data[i].value); }
+    else if (p.value != null) { addTick(p.timestamp, p.value); S.feed.oracle = Date.now(); if (!S.cb.tLocal && m.timestamp) clockSample(m.timestamp); if (document.hidden) { try { compute(); } catch(e){} } } };
+  ws.onclose = function(){ clearInterval(ping); clearInterval(dog); ws.onclose = null; setTimeout(connectOracle, 1500); };
+  ws.onerror = function(){ try { ws.close(); } catch(e){} };
+}
+
+/* ---------- Coinbase book, trades, candles ---------- */
+function connectCoinbase(){
+  var ws, born = Date.now(), dog;
+  try { ws = new WebSocket("wss://ws-feed.exchange.coinbase.com"); } catch(e){ return setTimeout(connectCoinbase, 3000); }
+  dog = setInterval(function(){ if (Date.now() - Math.max(S.feed.cb, born) > 15000) { try { ws.close(); } catch(e){} } }, 5000);
+  ws.onopen = function(){ ws.send(JSON.stringify({type:"subscribe", product_ids:["ETH-USD"], channels:["level2_batch","matches"]})); };
+  ws.onmessage = function(ev){ var m; try { m = JSON.parse(ev.data); } catch(e){ return; }
+    if (m.type === "snapshot") { S.cb.b = new Map(); S.cb.a = new Map(); var i; for (i=0;i<m.bids.length;i++) S.cb.b.set(+m.bids[i][0], +m.bids[i][1]); for (i=0;i<m.asks.length;i++) S.cb.a.set(+m.asks[i][0], +m.asks[i][1]); S.feed.cb = Date.now(); }
+    else if (m.type === "l2update") { for (var j=0;j<m.changes.length;j++){ var c = m.changes[j], mp = c[0] === "buy" ? S.cb.b : S.cb.a; if (+c[2] === 0) mp.delete(+c[1]); else mp.set(+c[1], +c[2]); } S.feed.cb = Date.now(); if (m.time) clockSample(Date.parse(m.time)); }
+    else if (m.type === "match" || m.type === "last_match") { var sz = +m.size; S.cb.trades.push([Date.now(), m.side === "sell" ? sz : -sz, sz]); } };
+  ws.onclose = function(){ clearInterval(dog); ws.onclose = null; setTimeout(connectCoinbase, 2000); };
+  ws.onerror = function(){ try { ws.close(); } catch(e){} };
+}
+function bookStats(){
+  var cb = S.cb; if (!cb.b.size || !cb.a.size) return;
+  var bb = -Infinity, ba = Infinity;
+  cb.b.forEach(function(s, p){ if (p > bb) bb = p; }); cb.a.forEach(function(s, p){ if (p < ba) ba = p; });
+  if (!(ba > bb)) return;
+  var mid = (bb+ba)/2, lo = mid*(1-5e-4), hi = mid*(1+5e-4), B = 0, A = 0;
+  cb.b.forEach(function(s, p){ if (p >= lo) B += s; }); cb.a.forEach(function(s, p){ if (p <= hi) A += s; });
+  cb.bid = bb; cb.ask = ba; cb.mid = mid; cb.tLocal = Date.now(); cb.obi = B + A > 0 ? (B-A)/(B+A) : null;
+  cb.hist.push([now(), mid]); if (cb.hist.length > 600) cb.hist.splice(0, 120);
+  var cut = Date.now() - 60000, tr = cb.trades; while (tr.length && tr[0][0] < cut - 240000) tr.shift();
+  var sg = 0, tot = 0; for (var i=tr.length-1; i>=0 && tr[i][0] >= cut; i--){ sg += tr[i][1]; tot += tr[i][2]; }
+  cb.flow = tot > 0 ? sg/tot : null;
+}
+function cbMidAt(ts){ var h = S.cb.hist; for (var i=h.length-1;i>=0;i--) if (h[i][0] <= ts) return ts - h[i][0] < 3000 ? h[i][1] : null; return null; }
+function seedCandles(){
+  return fetch(CBREST + "products/ETH-USD/candles?granularity=60").then(function(r){ return r.json(); }).then(function(rows){
+    if (!Array.isArray(rows)) return; rows.sort(function(a,b){ return a[0]-b[0]; });
+    for (var i=0;i<rows.length;i++){ var r = rows[i], idx = r[0]/60; S.candles.set(idx, {o:r[3], h:r[2], l:r[1], c:r[4]}); if (!S.minClose.has(idx) && (S.curMin === null || idx < S.curMin)) S.minClose.set(idx, r[4]); }
+    S.volSeeded = true; recomputeVol();
+  }).catch(function(){ setTimeout(seedCandles, 8000); });
+}
+function recomputeVol(){
+  var keys = Array.from(S.minClose.keys()).sort(function(a,b){ return a-b; }); if (keys.length > 420){ for (var k=0;k<keys.length-420;k++) S.minClose.delete(keys[k]); keys = keys.slice(-420); }
+  var v = null; for (var i=1;i<keys.length;i++){ if (keys[i] - keys[i-1] !== 1) continue; var r = Math.log(S.minClose.get(keys[i])/S.minClose.get(keys[i-1])); v = v === null ? r*r : Core.LAM*v + (1-Core.LAM)*r*r; }
+  if (v !== null && v > 0) S.ewVar = v;
+}
+
+/* ---------- price, strike, model ---------- */
+function primaryPrice(t){
+  var n = S.ticks.length, tick = n ? S.ticks[n-1] : null;
+  var tickFresh = tick && t - tick[0] < 9000, cbFresh = S.cb.mid && Date.now() - S.cb.tLocal < 5000;
+  if (tickFresh && cbFresh && S.basis !== null) return {S: tick[1]*Math.exp(0.65*Math.log(S.cb.mid*Math.exp(S.basis)/tick[1])), src: "oracle + Coinbase nowcast", tick: tick};
+  if (tickFresh) return {S: tick[1], src: "oracle", tick: tick};
+  if (cbFresh) return {S: S.cb.mid*Math.exp(S.basis === null ? 0 : S.basis), src: "Coinbase proxy (oracle feed down)", tick: null};
+  return {S: null, src: "waiting", tick: null};
+}
+function twap(fromMs, toMs){ var s = 0, n = 0, tk = S.ticks; for (var i=tk.length-1;i>=0;i--){ var ts = tk[i][0]; if (ts <= fromMs) break; if (ts <= toMs){ s += tk[i][1]; n++; } } return {n:n, sum:s, avg: n ? s/n : null}; }
+function resolveStrike(win){
+  if (win.kManual) { win.K = win.kManual; win.kSrc = "manual"; return; }
+  if (win.kOfficial) { win.K = win.kOfficial; win.kSrc = "official"; return; }
+  if (win.kFrozen) return;
+  var tw = twap(win.ws - 60000 - LAG, win.ws - LAG), n = S.ticks.length, last = n ? S.ticks[n-1][0] : 0;
+  if (tw.n >= 45 && last >= win.ws - LAG) { win.K = tw.avg; win.kSrc = "measured"; win.kFrozen = true; return; }
+  if (tw.n >= 30) { win.K = tw.avg; win.kSrc = "measuring"; return; }
+  if (win.kTrades) { win.K = win.kTrades; win.kSrc = "trades"; return; }
+  if (last >= win.ws + 3000) strikeFromTrades(win);
+  var c = S.candles.get(win.ws/60000 - 1);
+  if (c) { win.K = (c.o+c.h+c.l+c.c)/4*Math.exp(-0.27e-4); win.kSrc = "approx"; }
+}
+function strikeFromTrades(win){
+  if (DEMO || win.trBusy) return; win.trBusy = true;
+  var all = [], from = win.ws - 60000 - LAG;
+  function page(after, n){ return fetch(CBREST + "products/ETH-USD/trades?limit=1000" + (after ? "&after=" + after : "")).then(function(r){ return r.json(); }).then(function(j){
+    if (!Array.isArray(j) || !j.length) return; var minId = Infinity, minT = Infinity;
+    for (var i=0;i<j.length;i++){ var ts = Date.parse(j[i].time); all.push([ts, +j[i].price]); if (j[i].trade_id < minId) minId = j[i].trade_id; if (ts < minT) minT = ts; }
+    if (minT > from - 5000 && n < 14) return page(minId, n+1); }); }
+  page(null, 0).then(function(){ all.sort(function(a,b){ return a[0]-b[0]; }); if (!all.length || all[0][0] > from) return;
+    var s = 0, j = 0, lastPx = null; for (var k=1;k<=60;k++){ var T = from + k*1000; while (j < all.length && all[j][0] <= T){ lastPx = all[j][1]; j++; } if (lastPx === null) return; s += lastPx; }
+    win.kTrades = s/60*Math.exp(-0.33e-4);
+  }).catch(function(){ setTimeout(function(){ win.trBusy = false; }, 10000); });
+}
+function hourTrend(price, sigMin){
+  if (S.curMin === null) return null; var ref = null;
+  for (var d=0; d<=3 && ref === null; d++){ ref = S.minClose.get(S.curMin - 61 - d) || S.minClose.get(S.curMin - 61 + d) || null; }
+  return ref ? Math.log(price/ref)/(sigMin*Math.sqrt(60)) : null;
+}
+function ensureWindow(t){
+  var ws = Math.floor(t/WIN)*WIN; if (S.win && S.win.ws === ws) return;
+  var prev = S.win;
+  S.win = {ws: ws, end: ws+WIN, K: null, kSrc: null, kManual: null, kOfficial: null, kFrozen: false, cps: {}, tokUp: null, series: []};
+  S.lastSeriesSec = -1; $("strikeIn").value = ""; S.mkt = {bid:null, ask:null, t:0, ws:ws};
+  var a = new Date(ws), b = new Date(ws+WIN), o = {hour:"numeric", minute:"2-digit"};
+  setTxt("winLabel", "Ethereum Up or Down · " + a.toLocaleTimeString([], o) + " to " + b.toLocaleTimeString([], o));
+  if (prev) setTimeout(function(){ settle(prev); }, 4500);
+  loadMarket(S.win);
+}
+function compute(){
+  var t = now(); ensureWindow(t); var win = S.win, elapsed = (t - win.ws)/1000, tau = (win.end - LAG - t)/1000;
+  bookStats();
+  var pr = primaryPrice(t); S.price = pr;
+  if (pr.S) { var mi = Math.floor(t/60000); if (S.curMin === null) S.curMin = mi; if (mi > S.curMin) { if (S.lastPrimary) { S.minClose.set(S.curMin, S.lastPrimary); recomputeVol(); } S.curMin = mi; } S.lastPrimary = pr.S; }
+  resolveStrike(win);
+  var model = null;
+  if (pr.S && win.K) {
+    var ev = S.ewVar || 25e-8, pc = S.minClose.get(S.curMin - 1); if (pc) { var rc = Math.log(pr.S/pc); ev = Math.max(ev, Core.LAM*ev + (1-Core.LAM)*rc*rc); }
+    var sigMin = Math.sqrt(ev), expFinal = pr.S, tauEff = tau, avg = null;
+    if (tau <= 60 && pr.tick) { avg = twap(win.end - 60000 - LAG, win.end - LAG); var rem = Math.max(0, 60 - avg.n); expFinal = (avg.sum + pr.S*rem)/60; tauEff = rem; }
+    var h = hourTrend(pr.S, sigMin), r = Core.prob({expFinal: expFinal, strike: win.K, tau: tauEff, sigMin: sigMin, h: h, elapsed: elapsed});
+    model = {p: r.p, z: r.z, h: h, sigMin: sigMin, expFinal: expFinal, sdAbs: pr.S*r.sd, avg: avg, tau: tau, elapsed: elapsed};
+    for (var i=0;i<CPS.length;i++){ var cp = CPS[i]; if (elapsed >= cp && elapsed < cp + 6 && !win.cps[cp] && (win.kSrc === "measured" || win.kSrc === "official" || win.kSrc === "manual")) { var q = quotes(); win.cps[cp] = {p: r.p, z: r.z, h: h, bid: S.mkt.bid, ask: S.mkt.ask, aU: q.askUp, aD: q.askDn, flow: S.cb.flow, obi: S.cb.obi, lead: leadBp()}; } }
+    var sec = Math.floor(elapsed); if (sec !== S.lastSeriesSec) { S.lastSeriesSec = sec; win.series.push([elapsed, r.p, mktMid(), pr.S]); }
+  }
+  S.model = model;
+}
+function leadBp(){ var pr = S.price; return pr && pr.tick && pr.S ? 1e4*Math.log(pr.S/pr.tick[1]) : null; }
+function mktMid(){ var m = S.mkt; return m.bid != null && m.ask != null && Date.now() - m.t < 15000 ? (m.bid+m.ask)/2 : null; }
+function quotes(){
+  var m = S.mkt, live = Date.now() - m.t < 15000, u = parseFloat($("askUpIn").value), d = parseFloat($("askDnIn").value);
+  return { bidUp: live ? m.bid : null, askUp: u > 0 && u < 1 ? u : (live ? m.ask : null), bidDn: live && m.ask != null ? 1 - m.ask : null, askDn: d > 0 && d < 1 ? d : (live && m.bid != null ? 1 - m.bid : null), manual: (u > 0 && u < 1) || (d > 0 && d < 1) };
+}
+
+/* ---------- Polymarket market ---------- */
+function loadMarket(win){
+  if (DEMO) return;
+  fetch(GAMMA + "events?slug=eth-updown-15m-" + win.ws/1000).then(function(r){ return r.json(); }).then(function(j){
+    var e = j && j[0]; if (!e) throw new Error("not listed yet");
+    var m = e.markets[0], toks = JSON.parse(m.clobTokenIds), outs = JSON.parse(m.outcomes), iu = outs.indexOf("Up");
+    win.tokUp = toks[iu < 0 ? 0 : iu]; if (e.eventMetadata && e.eventMetadata.priceToBeat) win.kOfficial = +e.eventMetadata.priceToBeat;
+  }).catch(function(){ setTimeout(function(){ if (S.win === win) loadMarket(win); }, 5000); });
+}
+function pollBook(){
+  var win = S.win; if (DEMO || !win || !win.tokUp) return;
+  fetch(CLOB + "book?token_id=" + win.tokUp).then(function(r){ return r.json(); }).then(function(b){
+    if (S.win !== win) return; var bb = null, ba = null, i, p;
+    for (i=0;i<(b.bids||[]).length;i++){ p = +b.bids[i].price; if (bb === null || p > bb) bb = p; }
+    for (i=0;i<(b.asks||[]).length;i++){ p = +b.asks[i].price; if (ba === null || p < ba) ba = p; }
+    S.mkt = {bid: bb, ask: ba, t: Date.now(), ws: win.ws}; S.feed.mkt = Date.now();
+  }).catch(function(){});
+}
+function pollOfficialStrike(){
+  var win = S.win; if (DEMO || !win || win.kOfficial) return;
+  fetch(GAMMA + "events?slug=eth-updown-15m-" + win.ws/1000).then(function(r){ return r.json(); }).then(function(j){ var e = j && j[0]; if (e && e.eventMetadata && e.eventMetadata.priceToBeat && S.win === win) win.kOfficial = +e.eventMetadata.priceToBeat; }).catch(function(){});
+}
+
+/* ---------- settlement log ---------- */
+function loadLog(){ if (DEMO) return; try { var j = JSON.parse(localStorage.getItem(LOGKEY) || "[]"); if (Array.isArray(j)) S.log = j; } catch(e){} }
+function saveLog(){ if (DEMO) return; try { if (S.log.length > 3000) S.log = S.log.slice(-3000); localStorage.setItem(LOGKEY, JSON.stringify(S.log)); } catch(e){} }
+function settle(win){
+  if (!Object.keys(win.cps).length) return;
+  var tw = twap(win.end - 60000 - LAG, win.end - LAG), rec = {ws: win.ws, K: win.K, kSrc: win.kSrc, fin: tw.n >= 45 ? tw.avg : null, out: null, src: null, cps: win.cps};
+  if (rec.fin !== null && rec.K) { rec.out = rec.fin >= rec.K ? 1 : 0; rec.src = "measured"; }
+  S.log.push(rec); saveLog(); renderScore();
+  if (!DEMO) [40000, 150000, 600000, 1500000].forEach(function(d){ setTimeout(function(){ official(rec); }, d); });
+}
+function official(rec){
+  if (rec.src === "official") return;
+  fetch(GAMMA + "events?slug=eth-updown-15m-" + rec.ws/1000).then(function(r){ return r.json(); }).then(function(j){
+    var e = j && j[0]; if (!e) return; if (e.eventMetadata && e.eventMetadata.priceToBeat && !rec.offK) { rec.offK = +e.eventMetadata.priceToBeat; saveLog(); renderScore(); } if (!e.closed) return; var m = e.markets[0], outs = JSON.parse(m.outcomes), op = JSON.parse(m.outcomePrices), iu = Math.max(0, outs.indexOf("Up")), v = +op[iu];
+    if (v > 0.99 || v < 0.01) { rec.out = v > 0.5 ? 1 : 0; rec.src = "official"; saveLog(); renderScore(); }
+  }).catch(function(){});
+}
+function renderScore(){
+  var recs = S.log.filter(function(r){ return r.out === 0 || r.out === 1; }), off = recs.filter(function(r){ return r.src === "official"; }).length;
+  setTxt("scoreN", recs.length ? recs.length + " settled windows, " + off + " confirmed official" : "");
+  var body = $("scoreBody");
+  if (recs.length < 1) { body.innerHTML = "<div class=\"empty\">Nothing settled yet. Leave this page open: at 1, 5, 10 and 14 minutes into each window it records the model's probability and the market's bid and ask, then scores both when the window settles. 96 windows a day; about 30 are needed before the intervals below mean much. The log is kept in this browser.</div>"; return; }
+  var rows = "", i;
+  for (i=0;i<CPS.length;i++){
+    var cp = CPS[i], n = 0, hit = 0, llm = [], dm = [], pnl = [];
+    recs.forEach(function(r){ var c = r.cps[cp]; if (!c) return; n++; if ((c.p >= 0.5) === (r.out === 1)) hit++; var lm = Core.ll(c.p, r.out); llm.push(lm);
+      if (c.bid != null && c.ask != null) dm.push(lm - Core.ll((c.bid+c.ask)/2, r.out));
+      var eU = c.aU != null ? c.p - c.aU - Core.fee(c.aU) : -1, eD = c.aD != null ? (1-c.p) - c.aD - Core.fee(c.aD) : -1;
+      if (Math.max(eU, eD) >= 0.03) { if (eU >= eD) pnl.push(r.out - c.aU - Core.fee(c.aU)); else pnl.push((1-r.out) - c.aD - Core.fee(c.aD)); } });
+    if (!n) continue;
+    var w = Core.wilson(hit, n), ml = Core.meanT(llm), d = Core.meanT(dm), pn = Core.meanT(pnl);
+    rows += "<tr><td>" + mmss(cp) + " in</td><td class=\"num\">" + n + "</td><td class=\"num\">" + fPct(hit/n) + "% <span class=\"note\">(" + fPct(w[0],0) + " to " + fPct(w[1],0) + ")</span></td><td class=\"num\">" + ml.mean.toFixed(3) + "</td><td class=\"num\">" + (d.n ? fSig(d.mean, 3) + " <span class=\"note\">t " + d.t.toFixed(1) + ", n " + d.n + "</span>" : "--") + "</td><td class=\"num\">" + (pn.n ? fSig(100*pn.mean, 1) + "¢ <span class=\"note\">t " + pn.t.toFixed(1) + ", n " + pn.n + "</span>" : "no trades") + "</td></tr>";
+  }
+  var sig = "", names = [["flow","Trade flow, 60 s"],["obi","Book imbalance"],["lead","Coinbase lead"],["h","Hour trend"]];
+  names.forEach(function(nm){ var x = [], y = []; recs.forEach(function(r){ var c = r.cps[300]; if (c && c[nm[0]] != null && isFinite(c[nm[0]])) { x.push(c[nm[0]]); y.push(r.out - c.p); } }); var ct = Core.corrT(x, y); sig += "<tr><td>" + nm[1] + "</td><td class=\"num\">" + ct.n + "</td><td class=\"num\">" + (ct.n >= 4 ? fSig(ct.r, 2) : "--") + "</td><td class=\"num\">" + (ct.n >= 4 ? ct.t.toFixed(1) : "--") + "</td></tr>"; });
+  var ke = []; recs.forEach(function(r){ if (r.offK && r.kSrc === "measured" && r.K) ke.push(Math.abs(1e4*Math.log(r.K/r.offK))); }); ke.sort(function(a,b){ return a-b; });
+  var kNote = ke.length ? " Strike check: over " + ke.length + " windows the strike measured here differed from the official one by a median of " + ke[Math.floor(ke.length/2)].toFixed(2) + " bp, at most " + ke[ke.length-1].toFixed(2) + " bp." : "";
+  body.innerHTML = "<div class=\"stack\"><div class=\"scroll\"><table class=\"wide\"><thead><tr><th>Checkpoint</th><th class=\"r\">Windows</th><th class=\"r\">Model right (95% interval)</th><th class=\"r\">Model log-loss</th><th class=\"r\">Model minus market</th><th class=\"r\">Paper P&amp;L per share</th></tr></thead><tbody>" + rows + "</tbody></table></div>" +
+    "<div class=\"scroll\"><table><thead><tr><th>Watch-only signal at 5:00</th><th class=\"r\">Windows</th><th class=\"r\">Correlation with model error</th><th class=\"r\">t</th></tr></thead><tbody>" + sig + "</tbody></table></div></div>" +
+    "<p class=\"note\" style=\"margin-top:10px\">Model minus market is the log-loss difference; negative means the model beat the market mid. Paper P&amp;L buys the better side at its recorded ask whenever the edge after fee is 3¢ or more. A signal earns a weight only if its correlation with the model's error holds with |t| above 3." + kNote + "</p>";
+}
+
+/* ---------- render ---------- */
+var css = {};
+function readCss(){ var st = getComputedStyle(document.documentElement); ["--ink","--muted","--line","--accent","--up","--down","--warn","--sunk","--surface"].forEach(function(k){ css[k] = st.getPropertyValue(k).trim(); }); }
+function chip(id, label, last, maxAge, extra){ var ok = last && Date.now() - last < maxAge; setCls(id, "chip " + (ok ? "ok" : last ? "bad" : "")); $(id).lastElementChild.textContent = label + (ok ? (extra || " live") : last ? " stalled" : " connecting"); }
+function render(){
+  var win = S.win, m = S.model, pr = S.price, t = now(); if (!win) return;
+  var tau = (win.end - t)/1000; setTxt("tLeft", mmss(tau));
+  var lag = pr && pr.tick ? (t - pr.tick[0])/1000 : null;
+  chip("chipOracle", "Oracle", S.feed.oracle, 8000, lag !== null ? " live · " + lag.toFixed(1) + " s behind" : " live");
+  chip("chipCb", "Coinbase", S.feed.cb, 6000); chip("chipMkt", "Market", S.feed.mkt, 12000);
+  var kb = $("kBadge"), ks = win.kSrc;
+  kb.textContent = ks === "manual" ? "strike set by hand" : ks === "official" ? "official strike" : ks === "measured" ? "strike measured from the oracle" : ks === "measuring" ? "measuring strike" : ks === "trades" ? "strike estimated from Coinbase trades (±0.4 bp)" : ks === "approx" ? "strike approximate (±1.3 bp)" : "strike pending";
+  kb.className = "badge" + (ks === "approx" || ks === "trades" || !ks ? " warn" : "");
+  setTxt("kVal", fPx(win.K)); setTxt("sVal", fPx(pr && pr.S));
+  setTxt("srcNote", "Price source: " + (pr ? pr.src : "waiting") + "." + (S.ewVar ? "" : " Volatility is a placeholder until Coinbase history loads.") + (ks === "approx" || ks === "trades" ? " This page opened mid-window, so the strike is estimated from Coinbase and this window is left out of the scorecard; copy the market's price to beat into the box for the exact figure. The next window is measured directly." : ""));
+  if (!m) { setTxt("pUp", "--"); setTxt("says", pr && pr.S ? "Waiting for the price to beat." : "Connecting to the price feeds."); return; }
+  var p = Math.min(0.999, Math.max(0.001, m.p)), gap = m.expFinal - win.K;
+  setTxt("pUp", fPct(p)); $("barUp").style.width = (100*p).toFixed(2) + "%"; setTxt("barUpL", fPct(p) + "%"); setTxt("barDnL", fPct(1-p) + "%");
+  var lean = p >= 0.55 ? ["up", p >= 0.9 ? "Strongly Up" : "Leans Up"] : p <= 0.45 ? ["down", p <= 0.1 ? "Strongly Down" : "Leans Down"] : ["", "Coin flip"];
+  setCls("lean", "lean " + lean[0]); setTxt("lean", lean[1]);
+  setTxt("gapVal", fSig(gap, 2) + " (" + fSig(1e4*Math.log(m.expFinal/win.K), 1) + " bp)"); setCls("gapVal", gap >= 0 ? "pos" : "neg");
+  setTxt("zVal", fSig(m.z, 2)); setTxt("volVal", (1e4*m.sigMin).toFixed(1)); setTxt("hVal", m.h === null ? "--" : fSig(m.h, 2));
+  var says;
+  if (m.avg) says = "Settlement average is forming: " + m.avg.n + " of 60 seconds are in at " + fPx(m.avg.avg) + ". Projected average " + fPx(m.expFinal) + ", " + (gap >= 0 ? "above" : "below") + " the price to beat by $" + Math.abs(gap).toFixed(2) + "; it can still move about ±$" + m.sdAbs.toFixed(2) + ".";
+  else says = "The oracle price is $" + Math.abs(gap).toFixed(2) + " " + (gap >= 0 ? "above" : "below") + " the price to beat with " + mmss(tau) + " left. A typical move before settlement is ±$" + m.sdAbs.toFixed(2) + ", so the gap is " + Math.abs(m.z).toFixed(1) + " of those.";
+  setTxt("says", says);
+  setTxt("sgZ", fSig(m.z, 2) + " σ"); setTxt("sgVol", (1e4*m.sigMin).toFixed(1) + " bp/min"); setTxt("sgSd", "±$" + m.sdAbs.toFixed(2));
+  setTxt("sgH", m.h === null ? "--" : fSig(m.h, 2) + " σ"); var ld = leadBp(); setTxt("sgLead", ld === null ? "--" : fSig(ld, 2) + " bp");
+  setTxt("sgFlow", S.cb.flow === null ? "--" : fSig(100*S.cb.flow, 0) + "% buy"); setTxt("sgObi", S.cb.obi === null ? "--" : fSig(100*S.cb.obi, 0) + "% bid");
+  var q = quotes(); setTxt("mktNote", q.manual ? "Using the asks you typed" : S.feed.mkt ? "Polymarket order book" : "Polymarket order book: not connected");
+  setTxt("upBid", fC(q.bidUp)); setTxt("upAsk", fC(q.askUp)); setTxt("dnBid", fC(q.bidDn)); setTxt("dnAsk", fC(q.askDn)); setTxt("upFair", fC(p)); setTxt("dnFair", fC(1-p));
+  var eU = q.askUp != null ? p - q.askUp - Core.fee(q.askUp) : null, eD = q.askDn != null ? (1-p) - q.askDn - Core.fee(q.askDn) : null;
+  setTxt("upEdge", eU === null ? "--" : fSig(100*eU, 1) + "¢"); setCls("upEdge", "num " + (eU === null ? "" : eU > 0 ? "pos" : "neg"));
+  setTxt("dnEdge", eD === null ? "--" : fSig(100*eD, 1) + "¢"); setCls("dnEdge", "num " + (eD === null ? "" : eD > 0 ? "pos" : "neg"));
+}
+function setupCanvas(cv){ var dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight; if (cv.width !== Math.round(w*dpr) || cv.height !== Math.round(h*dpr)) { cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr); } var g = cv.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h); return {g:g, w:w, h:h}; }
+function frame(c, padL, padR, padT, padB, yMin, yMax, yTicks, yFmt){
+  var g = c.g, x0 = padL, x1 = c.w - padR, y0 = padT, y1 = c.h - padB;
+  var X = function(sec){ return x0 + (x1-x0)*sec/900; }, Y = function(v){ return y1 - (y1-y0)*(v-yMin)/(yMax-yMin); };
+  g.font = "11px " + getComputedStyle(document.body).getPropertyValue("--mono"); g.textBaseline = "middle";
+  g.fillStyle = css["--sunk"]; g.fillRect(X(837), y0, X(897)-X(837), y1-y0);
+  g.strokeStyle = css["--line"]; g.lineWidth = 1; g.fillStyle = css["--muted"];
+  yTicks.forEach(function(v){ g.beginPath(); g.moveTo(x0, Math.round(Y(v))+0.5); g.lineTo(x1, Math.round(Y(v))+0.5); g.stroke(); g.textAlign = "right"; g.fillText(yFmt(v), x0-6, Y(v)); });
+  g.textAlign = "center"; g.textBaseline = "top"; [0,5,10,15].forEach(function(mn){ g.fillText(mn + "m", Math.min(x1-8, Math.max(x0+8, X(mn*60))), y1+6); });
+  return {X:X, Y:Y, x0:x0, x1:x1, y0:y0, y1:y1};
+}
+function line(g, pts, color, width, dash){ if (pts.length < 1) return; g.save(); g.strokeStyle = color; g.lineWidth = width; g.lineJoin = "round"; g.setLineDash(dash || []); g.beginPath(); for (var i=0;i<pts.length;i++){ if (i) g.lineTo(pts[i][0], pts[i][1]); else g.moveTo(pts[i][0], pts[i][1]); } g.stroke(); g.restore(); }
+function niceTicks(lo, hi, n){ var span = hi-lo, step = Math.pow(10, Math.floor(Math.log10(span/n))), e = span/n/step; step *= e > 5 ? 10 : e > 2 ? 5 : e > 1 ? 2 : 1; var out = [], v = Math.ceil(lo/step)*step; for (; v <= hi + 1e-9; v += step) out.push(v); return out; }
+function drawCharts(){
+  var win = S.win; if (!win) return; readCss();
+  var t = now(), el = Math.min(900, (t - win.ws)/1000), pts = [], i;
+  for (var mnt = 0; mnt < 15; mnt++){ var cd = S.candles.get(win.ws/60000 + mnt); if (cd) pts.push([(mnt+1)*60, cd.c]); }
+  var firstLive = S.ticks.length ? (S.ticks[0][0] - win.ws)/1000 : 1e9; pts = pts.filter(function(p){ return p[0] < firstLive && p[0] <= el; });
+  for (i=0;i<S.ticks.length;i++){ var e = (S.ticks[i][0] - win.ws)/1000; if (e >= 0 && e <= 900) pts.push([e, S.ticks[i][1]]); }
+  var c1 = setupCanvas($("cvPrice")), lo = Infinity, hi = -Infinity;
+  pts.forEach(function(p){ if (p[1] < lo) lo = p[1]; if (p[1] > hi) hi = p[1]; }); if (win.K) { lo = Math.min(lo, win.K); hi = Math.max(hi, win.K); }
+  if (isFinite(lo)) { var pad = Math.max((hi-lo)*0.18, hi*0.0004); lo -= pad; hi += pad;
+    var f = frame(c1, 64, 10, 10, 24, lo, hi, niceTicks(lo, hi, 4), function(v){ return fPx(v); }), g = c1.g;
+    if (win.K) { line(g, [[f.x0, f.Y(win.K)], [f.x1, f.Y(win.K)]], css["--muted"], 1.5, [5,4]); }
+    var xy = pts.map(function(p){ return [f.X(p[0]), f.Y(p[1])]; }); line(g, xy, css["--accent"], 2);
+    if (xy.length) { var lp = xy[xy.length-1]; g.fillStyle = css["--accent"]; g.beginPath(); g.arc(lp[0], lp[1], 3.5, 0, 6.2832); g.fill(); }
+  }
+  var c2 = setupCanvas($("cvProb")), f2 = frame(c2, 64, 10, 10, 24, 0, 1, [0, 0.25, 0.5, 0.75, 1], function(v){ return Math.round(100*v) + "%"; }), sr = win.series;
+  var mk = sr.filter(function(s){ return s[2] != null; }).map(function(s){ return [f2.X(s[0]), f2.Y(s[2])]; }); line(c2.g, mk, css["--warn"], 1.75);
+  var md = sr.map(function(s){ return [f2.X(s[0]), f2.Y(s[1])]; }); line(c2.g, md, css["--accent"], 2);
+  if (md.length) { var l2 = md[md.length-1]; c2.g.fillStyle = css["--accent"]; c2.g.beginPath(); c2.g.arc(l2[0], l2[1], 3.5, 0, 6.2832); c2.g.fill(); }
+}
+
+/* ---------- demo feed (open the file with #demo) ---------- */
+function startDemo(){
+  $("demoChip").hidden = false; var rnd = function(){ var u = 0, i; for (i=0;i<6;i++) u += Math.random(); return (u-3)/Math.sqrt(0.5); };
+  var t = Date.now(), px = 2694.4, sm = 5e-4, mi = Math.floor(t/60000), i;
+  for (i=300;i>=1;i--){ var o = px; px *= Math.exp(sm*rnd()); S.candles.set(mi-i, {o:o, h:Math.max(o,px)*1.0001, l:Math.min(o,px)*0.9999, c:px}); S.minClose.set(mi-i, px); }
+  S.curMin = mi; recomputeVol(); var t0 = Math.floor(t/1000)*1000, back = Math.floor((t % WIN)/1000) + 75, ss = sm/Math.sqrt(60), path = [px];
+  for (i=0;i<back;i++) path.push(path[i]*Math.exp(-ss*rnd())); path.reverse(); for (i=0;i<path.length;i++) addTick(t0 - (path.length-1-i)*1000 - 2000, path[i]);
+  var cur = path[path.length-1], noise = 0;
+  setInterval(function(){ cur *= Math.exp(ss*rnd()); var lagged = S.demoQ || cur; S.demoQ2 = S.demoQ; S.demoQ = cur; addTick(Math.floor(Date.now()/1000)*1000 - 2000, S.demoQ2 || lagged); S.feed.oracle = Date.now();
+    noise = 0.9*noise + 0.012*rnd(); if (S.model) { var mdl = Math.min(0.98, Math.max(0.02, S.model.p + noise)), mdr = Math.round(mdl*100)/100; S.mkt = {bid: Math.max(0.01, mdr-0.01), ask: Math.min(0.99, mdr+0.01), t: Date.now(), ws: S.win.ws}; S.feed.mkt = Date.now(); } }, 1000);
+  setInterval(function(){ var m = cur*(1+2e-5*rnd()); S.cb.b = new Map([[m-0.01, 3+2*Math.random()],[m-0.4, 9]]); S.cb.a = new Map([[m+0.01, 3+2*Math.random()],[m+0.4, 9]]); S.feed.cb = Date.now(); if (Math.random() < 0.6) { var sz = Math.random(); S.cb.trades.push([Date.now(), Math.random() < 0.5 ? sz : -sz, sz]); } }, 250);
+  var ws0 = Math.floor(t/WIN)*WIN;
+  for (i=140;i>=1;i--){ var rec = {ws: ws0 - i*WIN, K: 2690, kSrc: "measured", fin: 2690, out: null, src: "official", cps: {}}, z = 0, out = null;
+    CPS.forEach(function(cp){ z += rnd()*Math.sqrt(cp/900)*1.1; var pp = Core.t4(1.3*z/Math.sqrt(Math.max(0.05, 1-cp/900))); pp = Math.min(0.99, Math.max(0.01, pp)); var mk = Math.min(0.98, Math.max(0.02, pp + 0.03*rnd())); mk = Math.round(mk*100)/100; rec.cps[cp] = {p: pp, z: z, h: rnd(), bid: mk-0.01, ask: mk+0.01, aU: mk+0.01, aD: 1-mk+0.01, flow: 0.4*rnd(), obi: 0.3*rnd(), lead: 0.3*rnd()}; if (cp === 840) out = Math.random() < pp ? 1 : 0; });
+    rec.out = out; S.log.push(rec); }
+}
+
+/* ---------- boot ---------- */
+$("strikeIn").addEventListener("input", function(){ var v = parseFloat(this.value); if (S.win) S.win.kManual = v > 0 ? v : null; });
+$("strikeClear").addEventListener("click", function(){ $("strikeIn").value = ""; if (S.win) S.win.kManual = null; });
+var armed = 0;
+$("logReset").addEventListener("click", function(){ var b = this; if (Date.now() - armed < 4000) { S.log = []; saveLog(); renderScore(); b.textContent = "Erase log"; armed = 0; } else { armed = Date.now(); b.textContent = "Click again to erase"; setTimeout(function(){ b.textContent = "Erase log"; }, 4000); } });
+readCss(); loadLog();
+if (DEMO) startDemo(); else { connectOracle(); connectCoinbase(); seedCandles(); setInterval(pollBook, 2000); setInterval(pollOfficialStrike, 45000); setInterval(seedCandles, 300000);
+  S.log.slice(-40).forEach(function(r, i){ if (r.src !== "official" && Date.now() - r.ws < 864e5) setTimeout(function(){ official(r); }, 3000 + 700*i); }); }
+renderScore();
+setInterval(function(){ try { compute(); render(); } catch(e){ console.error(e); } }, 250);
+setInterval(function(){ try { drawCharts(); } catch(e){ console.error(e); } }, 1000);
+window.addEventListener("resize", drawCharts);
+window.__app = S;
+})();
+</script>
+</body>
+</html>
