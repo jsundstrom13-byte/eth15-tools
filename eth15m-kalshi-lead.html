@@ -212,28 +212,29 @@ table.wide{min-width:560px}
         </dl>
         <div class="possec" id="posSec">
           <div class="possec-h"><h3 id="posTitle">Current bet</h3><span class="lean" id="posSide">No position</span></div>
-        <div class="row">
-          <button id="posBuy" type="button">Purchased</button>
-          <label for="posQty">shares</label><input type="number" id="posQty" min="1" step="1" value="10" style="width:64px" inputmode="numeric">
-          <label for="posPx">at &cent;</label><input type="number" id="posPx" min="1" max="99" step="0.1" placeholder="--" style="width:72px" inputmode="decimal">
-          <label for="posBid">bid now &cent;</label><input type="number" id="posBid" min="1" max="99" step="1" placeholder="--" style="width:64px" inputmode="numeric">
-          <label for="posLoss">max loss %</label><input type="number" id="posLoss" min="5" max="100" step="5" value="50" style="width:64px" inputmode="numeric">
+        <div class="fields">
+          <label><span>Shares</span><input type="number" id="posQty" min="1" step="1" value="10" inputmode="numeric"></label>
+          <label><span>Bought at &cent;</span><input type="number" id="posPx" min="1" max="99" step="0.1" placeholder="--" inputmode="decimal"></label>
+          <label><span>Bid now &cent;</span><input type="number" id="posBid" min="1" max="99" step="1" placeholder="--" inputmode="numeric"></label>
+          <label><span>Max loss %</span><input type="number" id="posLoss" min="5" max="100" step="5" value="50" inputmode="numeric"></label>
         </div>
-        <div class="row" id="posSellRow" hidden>
-          <button id="posSold" type="button" style="background:var(--up-soft);color:var(--up);border-color:var(--up)">Sold</button>
-          <label for="posSellPx">at &cent;</label><input type="number" id="posSellPx" min="1" max="99" step="1" placeholder="--" style="width:64px" inputmode="numeric">
-          <span class="note">logs the trade and clears the position</span>
-          <button id="posClear" type="button">Clear without logging</button>
+        <div class="fields acts">
+          <button id="posBuy" type="button" class="big buy">Purchased</button>
         </div>
-        <style>.possec{margin-top:14px;padding:10px 0 2px 12px;border-top:2px solid var(--line);border-left:4px solid var(--line);transition:border-color .3s}.possec.up{border-color:var(--up)}.possec.down{border-color:var(--down)}.possec.up h3{color:var(--up)}.possec.down h3{color:var(--down)}.possec-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}.verd{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 6px}.verd span{flex:1;min-width:88px;text-align:center;padding:8px 6px;border-radius:8px;font-weight:600;font-size:14px;line-height:1.25;opacity:.9}.verd span b{display:block;font:600 18px/1.2 var(--mono);font-variant-numeric:tabular-nums}.verd span small{display:block;font-weight:500;font-size:11px;opacity:.8}.verd .hold{background:var(--accent-soft);color:var(--accent)}.verd .sell{background:var(--up-soft);color:var(--up)}.verd .cut{background:var(--down-soft);color:var(--down)}.verd span.on{opacity:1;color:var(--surface);box-shadow:0 0 0 2px var(--surface),0 0 0 4px currentColor}.verd span.on.hold{background:var(--accent);box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--accent)}.verd span.on.sell{background:var(--up);box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--up)}.verd span.on.cut{background:var(--down);box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--down)}</style>
+        <div class="fields acts" id="posSellRow" hidden>
+          <label><span>Sell at &cent;</span><input type="number" id="posSellPx" min="1" max="99" step="1" placeholder="--" inputmode="numeric"></label>
+          <button id="posSold" type="button" class="big sold">Sold</button>
+          <button id="posClear" type="button" class="big" style="grid-column:span 2">Clear without logging</button>
+        </div>
+        <style>.fields[hidden],button[hidden]{display:none}.fields{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:8px}.fields label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);min-width:0}.fields label span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fields input[type=number]{width:100%;box-sizing:border-box;height:44px;padding:0 6px;font:600 17px var(--mono);font-variant-numeric:tabular-nums;text-align:center;border-radius:8px;-moz-appearance:textfield}.fields input::-webkit-outer-spin-button,.fields input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}.fields.acts{align-items:end}.fields button.big{height:44px;border-radius:8px;font-weight:600;font-size:14px;padding:0 8px}.fields button.buy{grid-column:span 4;background:var(--accent);color:var(--surface);border-color:var(--accent)}.fields button.sold{background:var(--up-soft);color:var(--up);border-color:var(--up)}.possec{margin-top:14px;padding:10px 0 2px 12px;border-top:2px solid var(--line);border-left:4px solid var(--line);transition:border-color .3s}.possec.up{border-color:var(--up)}.possec.down{border-color:var(--down)}.possec.up h3{color:var(--up)}.possec.down h3{color:var(--down)}.possec-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}.verd{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 6px}.verd span{flex:1;min-width:88px;text-align:center;padding:8px 6px;border-radius:8px;font-weight:600;font-size:14px;line-height:1.25;opacity:.9}.verd span b{display:block;font:600 18px/1.2 var(--mono);font-variant-numeric:tabular-nums}.verd span small{display:block;font-weight:500;font-size:11px;opacity:.8}.verd .hold{background:var(--accent-soft);color:var(--accent)}.verd .sell{background:var(--up-soft);color:var(--up)}.verd .cut{background:var(--down-soft);color:var(--down)}.verd span.on{opacity:1;color:var(--surface);box-shadow:0 0 0 2px var(--surface),0 0 0 4px currentColor}.verd span.on.hold{background:var(--accent);box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--accent)}.verd span.on.sell{background:var(--up);box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--up)}.verd span.on.cut{background:var(--down);box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--down)}</style>
         <div id="posBody" class="empty">No position. Purchased records the called side at the buy price shown, 10 shares; edit the price or shares to match your fill.</div>
         </div>
         <div class="possec" id="addSec" hidden>
           <div class="possec-h"><h3 id="addTitle">Add to this bet</h3><span class="note" id="addNote"></span></div>
-          <div class="row">
-            <button id="posAdd" type="button">Bought more</button>
-            <label for="posAddQty">shares</label><input type="number" id="posAddQty" min="1" step="1" value="10" style="width:64px" inputmode="numeric">
-            <label for="posAddPx">at &cent;</label><input type="number" id="posAddPx" min="1" max="99" step="0.1" placeholder="--" style="width:72px" inputmode="decimal">
+          <div class="fields acts">
+            <label><span>Shares</span><input type="number" id="posAddQty" min="1" step="1" value="10" inputmode="numeric"></label>
+            <label><span>Bought at &cent;</span><input type="number" id="posAddPx" min="1" max="99" step="0.1" placeholder="--" inputmode="decimal"></label>
+            <button id="posAdd" type="button" class="big" style="grid-column:span 2">Bought more</button>
           </div>
           <div id="addLots"></div>
           <p class="note">Each lot keeps its own price and fee. Hold, sell and cut above are judged on the whole position at its average cost. The first lot stays editable in the shares and price boxes above; remove a lot here if it was typed by mistake.</p>
