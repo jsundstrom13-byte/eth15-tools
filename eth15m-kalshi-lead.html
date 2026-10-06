@@ -16,7 +16,7 @@
 :root{
   --bg:#f3f4f9; --surface:#ffffff; --sunk:#eceef6; --ink:#151a2d; --muted:#5a6182; --line:#d9dcea;
   --accent:#434fcf; --perp:#b4631a; --up:#0b8a69; --down:#cf432d; --warn:#9a6708;
-  --up-soft:#d9f1ea; --down-soft:#fae0da; --accent-soft:#e3e6fb;
+  --up-soft:#d9f1ea; --down-soft:#fae0da; --accent-soft:#e3e6fb; --warn-soft:#fbefcf;
   --sans:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
   color-scheme:light;
@@ -24,11 +24,11 @@
 @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
   --bg:#0e1120; --surface:#161a2e; --sunk:#1d2239; --ink:#e7e9f7; --muted:#979ec0; --line:#2b3153;
   --accent:#909aff; --perp:#f0a35c; --up:#3ecfa4; --down:#ff806a; --warn:#e2b257;
-  --up-soft:#143a33; --down-soft:#45211c; --accent-soft:#262c58; color-scheme:dark; } }
+  --up-soft:#143a33; --down-soft:#45211c; --accent-soft:#262c58; --warn-soft:#4a3a12; color-scheme:dark; } }
 :root[data-theme="dark"]{
   --bg:#0e1120; --surface:#161a2e; --sunk:#1d2239; --ink:#e7e9f7; --muted:#979ec0; --line:#2b3153;
   --accent:#909aff; --perp:#f0a35c; --up:#3ecfa4; --down:#ff806a; --warn:#e2b257;
-  --up-soft:#143a33; --down-soft:#45211c; --accent-soft:#262c58; color-scheme:dark; }
+  --up-soft:#143a33; --down-soft:#45211c; --accent-soft:#262c58; --warn-soft:#4a3a12; color-scheme:dark; }
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
@@ -215,7 +215,7 @@ table.wide{min-width:560px}
           <div><dt>ETH for the cut</dt><dd><span id="crEthAg">--</span></dd></div>
         </dl>
         <div class="possec" id="posSec">
-          <div class="possec-h"><h3 id="posTitle">Current bet</h3><span class="lean" id="posSide">No position</span></div>
+          <div class="possec-h"><h3 id="posTitle">Current bet</h3><span style="display:flex;gap:8px;align-items:center"><span class="lean" id="posSide">No position</span><button id="scalpBtn" type="button" class="scalp">Scalp</button></span></div>
         <div class="fields">
           <label><span>Shares</span><input type="number" id="posQty" min="1" step="1" value="10" inputmode="numeric"></label>
           <label><span>Bought at &cent;</span><input type="number" id="posPx" min="1" max="99" step="0.1" placeholder="--" inputmode="decimal"></label>
@@ -230,8 +230,8 @@ table.wide{min-width:560px}
           <button id="posSold" type="button" class="big sold">Sold</button>
           <button id="posClear" type="button" class="big" style="grid-column:span 2">Clear without logging</button>
         </div>
-        <style>.tlsum{margin:12px 0 4px;font:600 20px/1.3 var(--sans)}.tlsum b{font:700 24px/1.2 var(--mono);font-variant-numeric:tabular-nums}.fields[hidden],button[hidden]{display:none}.fields{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:8px}.fields label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);min-width:0}.fields label span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fields input.sug{color:var(--muted)}.fields input[type=number]{width:100%;box-sizing:border-box;height:44px;padding:0 6px;font:600 17px var(--mono);font-variant-numeric:tabular-nums;text-align:center;border-radius:8px;-moz-appearance:textfield}.fields input::-webkit-outer-spin-button,.fields input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}.fields.acts{align-items:end}.fields button.big{height:44px;border-radius:8px;font-weight:600;font-size:14px;padding:0 8px}.fields button.buy{grid-column:span 4;background:var(--accent);color:var(--surface);border-color:var(--accent)}.fields button.sold{background:var(--up-soft);color:var(--up);border-color:var(--up)}.possec{margin-top:14px;padding:10px 0 2px 12px;border-top:2px solid var(--line);border-left:4px solid var(--line);transition:border-color .3s}.possec.up{border-color:var(--up)}.possec.down{border-color:var(--down)}.possec.up h3{color:var(--up)}.possec.down h3{color:var(--down)}.possec-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}.possec{container-type:inline-size}.verd{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0 8px}@container (min-width:620px){.verd{grid-template-columns:repeat(4,minmax(0,1fr))}}.verd span{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-width:0;text-align:center;padding:10px 6px;border-radius:8px;font-weight:600;font-size:13px;line-height:1.25;opacity:.9}.verd .max{background:var(--up-soft);color:var(--up)}.verd span b{display:block;font:600 22px/1.2 var(--mono);font-variant-numeric:tabular-nums;margin:4px 0 2px}.verd span small{display:block;font:500 12px/1.4 var(--mono);font-variant-numeric:tabular-nums;opacity:.85}.verd .hold{background:var(--sunk);color:var(--muted)}.verd .sell{background:var(--accent-soft);color:var(--accent)}.verd .cut{background:var(--down-soft);color:var(--down)}.verd span.on{opacity:1;color:var(--surface);box-shadow:0 0 0 2px var(--surface),0 0 0 4px currentColor}.verd span.on.hold{background:var(--muted);box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--muted)}.verd span.on.sell{background:var(--accent);box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--accent)}.verd span.on.cut{background:var(--down);box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--down)}</style>
-        <div id="posBody" class="empty">No position. Purchased records the called side at the buy price shown, 10 shares; edit the price or shares to match your fill.</div>
+        <style>button.scalp{font-weight:600;border-radius:999px;padding:4px 12px}button.scalp.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}.possec.scalp{border-top-style:dashed;border-left-style:dashed}.risk{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:8px 0 6px}.risk span{display:flex;flex-direction:column;align-items:center;text-align:center;padding:10px 6px;border-radius:8px;font-weight:600;font-size:13px;line-height:1.25;min-width:0}.risk span b{display:block;font:600 22px/1.2 var(--mono);font-variant-numeric:tabular-nums;margin:4px 0 2px}.risk span small{display:block;font:500 12px/1.4 var(--mono);font-variant-numeric:tabular-nums;opacity:.85}.risk .lo{background:var(--up-soft);color:var(--up)}.risk .md{background:var(--warn-soft);color:var(--warn)}.risk .hi{background:var(--down-soft);color:var(--down)}.plabel.risk-h{margin-top:10px}.tlsum{margin:12px 0 4px;font:600 20px/1.3 var(--sans)}.tlsum b{font:700 24px/1.2 var(--mono);font-variant-numeric:tabular-nums}.fields[hidden],button[hidden]{display:none}.fields{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:8px}.fields label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);min-width:0}.fields label span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fields input.sug{color:var(--muted)}.fields input[type=number]{width:100%;box-sizing:border-box;height:44px;padding:0 6px;font:600 17px var(--mono);font-variant-numeric:tabular-nums;text-align:center;border-radius:8px;-moz-appearance:textfield}.fields input::-webkit-outer-spin-button,.fields input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}.fields.acts{align-items:end}.fields button.big{height:44px;border-radius:8px;font-weight:600;font-size:14px;padding:0 8px}.fields button.buy{grid-column:span 4;background:var(--accent);color:var(--surface);border-color:var(--accent)}.fields button.sold{background:var(--up-soft);color:var(--up);border-color:var(--up)}.possec{margin-top:14px;padding:10px 0 2px 12px;border-top:2px solid var(--line);border-left:4px solid var(--line);transition:border-color .3s}.possec.up{border-color:var(--up)}.possec.down{border-color:var(--down)}.possec.up h3{color:var(--up)}.possec.down h3{color:var(--down)}.possec-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}.possec{container-type:inline-size}.verd{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0 8px}@container (min-width:620px){.verd{grid-template-columns:repeat(4,minmax(0,1fr))}}.verd span{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-width:0;text-align:center;padding:10px 6px;border-radius:8px;font-weight:600;font-size:13px;line-height:1.25;opacity:.9}.verd .max{background:var(--up-soft);color:var(--up)}.verd span b{display:block;font:600 22px/1.2 var(--mono);font-variant-numeric:tabular-nums;margin:4px 0 2px}.verd span small{display:block;font:500 12px/1.4 var(--mono);font-variant-numeric:tabular-nums;opacity:.85}.verd .hold{background:var(--sunk);color:var(--muted)}.verd .sell{background:var(--accent-soft);color:var(--accent)}.verd .cut{background:var(--down-soft);color:var(--down)}.verd span.on{opacity:1;color:var(--surface);box-shadow:0 0 0 2px var(--surface),0 0 0 4px currentColor}.verd span.on.hold{background:var(--muted);box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--muted)}.verd span.on.sell{background:var(--accent);box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--accent)}.verd span.on.cut{background:var(--down);box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--down)}</style>
+        <div id="posBody" class="empty">Waiting for data.</div>
         </div>
         <div class="possec" id="addSec" hidden>
           <div class="possec-h"><h3 id="addTitle">Add to this bet</h3><span class="note" id="addNote"></span></div>
@@ -601,18 +601,19 @@ function renderCur(c, tau){
   var lean = c.ps >= 0.9 ? [c.up ? "up" : "down", "Strongly " + side] : c.ps >= 0.6 ? [c.up ? "up" : "down", "Clear " + side] : c.now ? [c.up ? "up" : "down", "Slight " + side] : ["", "Too close to beat the fee"];
   setCls("crLean", "lean " + lean[0]); setTxt("crLean", lean[1]);
   if (c.final) { setTxt("crEntry", "--"); setTxt("crEntryT", "closed: average forming"); setTxt("crSell", "--"); setTxt("crSellT", ""); setTxt("crStop", "--"); setTxt("crStopT", ""); setTxt("crLast", "passed"); setTxt("crEthFor", "--"); setTxt("crEthAg", "--"); return; }
-  if (!S.pos) sug("posPx", (Math.round(1000*c.entry)/10).toFixed(1));
+  if (!S.pos) sug("posPx", (Math.round(1000*betEntry(c))/10).toFixed(1));
   setTxt("crEntry", pp(c.entry) + " " + side); setTxt("crEntryT", c.ask != null ? (c.ask <= c.entry ? "ask " + pp(c.ask) + ": buy now" : "ask " + pp(c.ask) + ": too high, wait") : (c.now ? "now" : "only if offered"));
   setTxt("crSell", pp(c.sell)); setTxt("crSellT", "by " + mmss(c.exitAt) + " left"); setTxt("crStop", pp(c.stop)); setTxt("crStopT", "by " + mmss(c.exitAt) + " left");
   setTxt("crLast", mmss(c.lastExit) + " left"); setTxt("crEthFor", fmt(c.ethFor)); setTxt("crEthAg", fmt(c.ethAg));
 }
+S.scalp = false;
 function posSave(){ try { if (S.pos) localStorage.setItem("eth15kl.pos", JSON.stringify(S.pos)); else localStorage.removeItem("eth15kl.pos"); } catch(e){} }
 function posLoad(){ try { var j = JSON.parse(localStorage.getItem("eth15kl.pos") || "null"); if (j && j.ws && Date.now() - j.ws < WIN + 600000) S.pos = j; var t = JSON.parse(localStorage.getItem("eth15kl.trades") || "[]"); if (Array.isArray(t)) S.trades = t; } catch(e){} }
 function tradesSave(){ try { localStorage.setItem("eth15kl.trades", JSON.stringify(S.trades.slice(-500))); } catch(e){} }
 function posBuy(){ var c = S.model && S.model.cur, win = S.win; if (!c || !win || c.final) return; var px = parseFloat($("posPx").value), q = parseInt($("posQty").value, 10) || 10;
-  if (!(px > 0 && px < 100)) px = Math.round(1000*c.entry)/10; sugUser("posPx", px); sugUser("posQty", q);
-  var t0 = Date.now() - S.off; S.pos = {ws: win.ws, up: c.up, qty: q, px: px/100, t: t0, K: win.K, pAtBuy: c.ps, lots: [{qty: q, px: px/100, t: t0}]}; posSave(); $("posBid").value = ""; $("addLots").innerHTML = ""; }
-function posReset(){ S.pos = null; posSave(); posHead(null, S.model && S.model.cur); $("addSec").hidden = true; $("addLots").innerHTML = ""; ["posPx","posBid","posSellPx","posAddPx","posAddQty"].forEach(sugClear); $("posBody").className = "empty"; $("posBody").textContent = "No position. Purchased records the called side at the buy price shown, 10 shares; edit the price or shares to match your fill."; }
+  if (!(px > 0 && px < 100)) px = Math.round(1000*betEntry(c))/10; sugUser("posPx", px); sugUser("posQty", q);
+  var t0 = Date.now() - S.off, bu = betUp(c); S.pos = {ws: win.ws, up: bu, qty: q, px: px/100, t: t0, K: win.K, pAtBuy: bu === c.up ? c.ps : 1 - c.ps, scalp: !!S.scalp, lots: [{qty: q, px: px/100, t: t0}]}; posSave(); $("posBid").value = ""; $("addLots").innerHTML = ""; }
+function posReset(){ S.pos = null; S.scalp = false; posSave(); posHead(null, S.model && S.model.cur); $("addSec").hidden = true; $("addLots").innerHTML = ""; ["posPx","posBid","posSellPx","posAddPx","posAddQty"].forEach(sugClear); $("posBody").className = "empty"; $("posBody").textContent = "No position."; }
 function logTrade(pos, sellPx, how, fAtSale){
   var tot = posTotals(pos), feeOut = how === "sold" ? Core.fee(sellPx) : 0, pl = tot.qty*(sellPx - feeOut) - tot.cost;
   S.trades.push({ws: pos.ws, up: pos.up, qty: tot.qty, buy: tot.avg, lots: tot.n, cost: tot.cost, sell: sellPx, how: how, pl: pl, tBuy: pos.t, tSell: Date.now() - S.off, fair: fAtSale == null ? null : fAtSale, pBuy: pos.pAtBuy == null ? null : pos.pAtBuy});
@@ -648,15 +649,43 @@ function posTotals(pos){ var L = posLots(pos), q = 0, cost = 0, paid = 0; L.forE
 function posAdd(){ var pos = S.pos, win = S.win; if (!pos || !win || pos.ws !== win.ws) return; var px = parseFloat($("posAddPx").value), q = parseInt($("posAddQty").value, 10) || 10; if (!(px > 0 && px < 100)) return;
   posLots(pos).push({qty: q, px: px/100, t: Date.now() - S.off}); posTotals(pos); posSave(); sugClear("posAddPx"); sugClear("posAddQty"); }
 function posDropLot(i){ var pos = S.pos; if (!pos) return; var L = posLots(pos); if (L.length < 2) return; L.splice(i, 1); posTotals(pos); posSave(); }
+// Side to bet when not yet in: the call, or the other side when Scalp is on.
+function betUp(c){ return c ? (S.scalp ? !c.up : c.up) : null; }
+function betEntry(c){ var ps = S.scalp ? 1 - c.ps : c.ps; return Math.max(0.01, ps - Core.fee(ps) - 0.01); }
+// Touch model for a side: fair value after a k-sigma ETH move over the horizon, and the chance that move is touched before last exit.
+function touchModel(m, win, tau, up){
+  if (!(tau > 60 && m && m.sigMin > 0 && m.expFinal > 0 && win && win.K > 0)) return null;
+  var hz = Math.max(20, Math.min(180, tau - 60)), sigSec = m.sigMin/Math.sqrt(60), d = Math.log(m.expFinal/win.K), sgnS = up ? 1 : -1, el = 900 - tau, tauMid = Math.max(0, tau - hz/2);
+  var fairAfter = function(k){ var z = (d + sgnS*k*sigSec*Math.sqrt(hz))/Math.max(1e-12, Core.sdRel(tauMid, sigSec)); var pq = Core.t4(Core.scaleA(el + hz/2)*z); return up ? pq : 1 - pq; };
+  var Phi = function(x){ var t = 1/(1 + 0.2316419*Math.abs(x)), dd = 0.3989423*Math.exp(-x*x/2), q = dd*t*(((((1.330274*t - 1.821256)*t + 1.781478)*t - 0.3565638)*t + 0.3193815)); return x >= 0 ? 1 - q : q; };
+  var chanceTo = function(target, dir){ for (var k = 0.05; k <= 3.0001; k += 0.05) { var fk = fairAfter(dir*k); if (dir > 0 ? fk >= target : fk <= target) return 2*(1 - Phi(k)); } return 0; };
+  return {hz: hz, fairAfter: fairAfter, Phi: Phi, chanceTo: chanceTo, touch: function(k){ return 2*(1 - Phi(k)); }};
+}
+// Low / medium / high risk limit sells: 0.5, 1 and 1.5 sigma moves in your favour.
+function riskBoxes(tm, qty, cost, settling){
+  var usd = function(x){ return (x >= 0 ? "+$" : "\u2212$") + Math.abs(x).toFixed(2) + (x >= 0 ? " profit" : " loss"); };
+  var h = "<div class=\"plabel risk-h\">Optimal payouts: limit sells by risk</div><div class=\"risk\">";
+  [["lo", "Low risk", 0.5], ["md", "Medium risk", 1.0], ["hi", "High risk", 1.5]].forEach(function(r){
+    if (!tm) { h += "<span class=\"" + r[0] + "\">" + r[1] + "<b>--</b><small>" + (settling ? "settling" : "waiting for data") + "</small><small>&nbsp;</small></span>"; return; }
+    var px = Math.min(0.99, Math.ceil(100*tm.fairAfter(r[2]) - 1e-9)/100), pl = qty*(px - Core.fee(px)) - cost, pt = tm.touch(r[2]);
+    h += "<span class=\"" + r[0] + "\">" + r[1] + "<b>" + Math.round(100*px) + "\u00a2</b><small>" + usd(pl) + "</small><small>" + Math.round(100*pt) + "% chance</small></span>";
+  });
+  return h + "</div>";
+}
 function posHead(pos, c){
-  var up = pos ? pos.up : (c ? c.up : null), side = up == null ? "" : (up ? "Up" : "Down"), cls = up == null ? "" : (up ? "up" : "down");
-  setCls("posSec", "possec " + cls); setTxt("posTitle", pos ? "Current bet: " + pos.qty + " " + side : "Current bet");
-  setCls("posSide", "lean " + cls); setTxt("posSide", pos ? "Holding " + side + " at " + pp(pos.px) + (pos.lots && pos.lots.length > 1 ? " avg" : "") : (side ? "Not in yet \u00b7 call is " + side : "No position"));
+  var up = pos ? pos.up : betUp(c), side = up == null ? "" : (up ? "Up" : "Down"), cls = up == null ? "" : (up ? "up" : "down"), scalp = !pos && S.scalp;
+  setCls("posSec", "possec " + cls + (scalp ? " scalp" : "")); setTxt("posTitle", pos ? "Current bet: " + pos.qty + " " + side : scalp ? "Scalp" : "Current bet");
+  setCls("posSide", "lean " + cls); setTxt("posSide", pos ? "Holding " + side + " at " + pp(pos.px) + (pos.lots && pos.lots.length > 1 ? " avg" : "") : (side ? (scalp ? "Buying " + side + " against the " + (c.up ? "Up" : "Down") + " call" : "Not in yet \u00b7 call is " + side) : "No position"));
+  $("scalpBtn").hidden = !!pos; setCls("scalpBtn", "scalp" + (S.scalp ? " on" : ""));
 }
 function renderPos(m, tau){
   var pos = S.pos, win = S.win; $("posSellRow").hidden = !pos; $("posBuy").hidden = !!pos;
   posHead(pos, m && m.cur);
-  if (!pos || !win || !m || m.p == null) return;
+  if (!win || !m || m.p == null) return;
+  if (!pos) { var c = m.cur; if (!c) return; var bu = betUp(c), pf = bu ? m.p : 1 - m.p, bq = parseInt($("posQty").value, 10) || 10, bpx = parseFloat($("posPx").value); if (!(bpx > 0 && bpx < 100)) bpx = 100*betEntry(c); bpx /= 100;
+    var bcost = bq*(bpx + Core.fee(bpx)), btm = touchModel(m, win, tau, bu);
+    $("posBody").className = ""; $("posBody").innerHTML = "<div class=\"kv\" style=\"border-top:0;padding-top:0\"><div><dt>If you buy</dt><dd>" + bq + " " + (bu ? "Up" : "Down") + " at " + pp(bpx) + "</dd></div><div><dt>Cost with fee</dt><dd>$" + bcost.toFixed(2) + "</dd></div><div><dt>Fair value now</dt><dd>" + cents(pf) + " <small>" + (100*pf).toFixed(0) + "% to settle your way</small></dd></div><div><dt>Pays at settlement</dt><dd>" + (bq - bcost >= 0 ? "+" : "\u2212") + "$" + Math.abs(bq - bcost).toFixed(2) + " <small>if right, \u2212$" + bcost.toFixed(2) + " if wrong</small></dd></div></div>" + riskBoxes(btm, bq, bcost, c.final) + "<p class=\"note\">" + (S.scalp ? "Scalp: this is the side the model is against. The aim is a bounce to one of the limit prices before last exit, not settlement." : "Purchased records this bet; edit the price or shares first to match your fill.") + "</p>";
+    return; }
   if (pos.ws !== win.ws) { $("posBody").className = ""; $("posBody").innerHTML = "<p class=\"note\">Your " + pos.qty + " " + (pos.up ? "Up" : "Down") + " from " + etRange(pos.ws, pos.ws + WIN) + " ran to the close. It will be logged at its settlement value as soon as Kalshi posts the result, usually within 2 minutes.</p>"; return; }
   var L = posLots(pos), px = parseFloat($("posPx").value); if (px > 0 && px < 100) L[0].px = px/100; var q = parseInt($("posQty").value, 10); if (q > 0) L[0].qty = q;
   var tot = posTotals(pos), f = pos.up ? m.p : 1 - m.p, bidIn = parseFloat($("posBid").value)/100, bid = bidIn > 0 && bidIn < 1 ? bidIn : null, lossPct = (parseFloat($("posLoss").value) || 50)/100;
@@ -673,14 +702,10 @@ function renderPos(m, tau){
   sug("posSellPx", bid != null ? Math.round(100*bid) : Math.round(100*beAt));
   // Max target: the limit price that maximises (chance it is touched before last exit) x (gain over fair value after fees).
   // A limit k sigma above the current path is touched with probability 2(1 - Phi(k)) over the horizon (reflection principle).
-  var mx = null, fairAfter = null, Phi = null, chanceTo = function(target, dir){ if (!fairAfter) return null; for (var k = 0.05; k <= 3.0001; k += 0.05) { var fk = fairAfter(dir*k); if (dir > 0 ? fk >= target : fk <= target) return 2*(1 - Phi(k)); } return 0; };
-  if (tau > 60 && m.sigMin > 0 && m.expFinal > 0 && win.K > 0) {
-    var hz = Math.max(20, Math.min(180, tau - 60)), tauAfter = Math.max(0, tau - hz), sigSec = m.sigMin/Math.sqrt(60), d = Math.log(m.expFinal/win.K), sgnS = pos.up ? 1 : -1, el = 900 - tau;
-    // The touch happens somewhere inside the horizon, so the contract is valued with half the horizon still to run (a touch at the very end would be worth more).
-    var tauMid = Math.max(0, tau - hz/2); fairAfter = function(k){ var z = (d + sgnS*k*sigSec*Math.sqrt(hz))/Math.max(1e-12, Core.sdRel(tauMid, sigSec)); var pq = Core.t4(Core.scaleA(el + hz/2)*z); return pos.up ? pq : 1 - pq; };
-    Phi = function(x){ var t = 1/(1 + 0.2316419*Math.abs(x)), dd = 0.3989423*Math.exp(-x*x/2), q = dd*t*(((((1.330274*t - 1.821256)*t + 1.781478)*t - 0.3565638)*t + 0.3193815)); return x >= 0 ? 1 - q : q; };
+  var mx = null, tm = touchModel(m, win, tau, pos.up), chanceTo = function(target, dir){ return tm ? tm.chanceTo(target, dir) : null; };
+  if (tm) {
     var base = f - Core.fee(f), best = -1;
-    for (var k = 0.1; k <= 2.5; k += 0.1) { var fk = Math.min(0.99, fairAfter(k)), gain = fk - Core.fee(fk) - base, pt = 2*(1 - Phi(k)); if (gain <= 0) continue; var ev = pt*gain; if (ev > best) { best = ev; mx = {px: Math.ceil(100*fk - 1e-9)/100, k: k, pt: pt, gain: gain, hz: hz}; } }
+    for (var k = 0.1; k <= 2.5; k += 0.1) { var fk = Math.min(0.99, tm.fairAfter(k)), gain = fk - Core.fee(fk) - base, pt = tm.touch(k); if (gain <= 0) continue; var ev = pt*gain; if (ev > best) { best = ev; mx = {px: Math.ceil(100*fk - 1e-9)/100, k: k, pt: pt, gain: gain, hz: tm.hz}; } }
     if (mx && mx.px <= Math.max(sellAt, beAt)) mx = null;
   }
   var state, line;
@@ -693,7 +718,7 @@ function renderPos(m, tau){
   var pushPL = pos.qty*(beAt - Core.fee(beAt)) - cost, cutPL = pos.qty*(floorPx - Core.fee(floorPx)) - cost, pcPush = f >= beAt ? 1 : chanceTo(beAt, 1), pcCut = chanceTo(floorPx, -1);
   var pct = function(x){ return x == null ? "--" : x < 0.005 ? "under 1% chance" : Math.round(100*x) + "% chance"; }, usd = function(x, w){ return (x >= 0 ? "+$" : "\u2212$") + Math.abs(x).toFixed(2) + " " + w; };
   var verd = "<div class=\"verd\"><span class=\"hold" + (state === "hold" ? " on" : "") + "\">Hold<b>" + cents(f) + "</b><small>" + usd(markPL, markPL >= 0 ? "profit" : "loss") + "</small><small>worth now</small></span><span class=\"sell" + (state === "sell" ? " on" : "") + "\">Push<b>" + cents(state === "sell" && bid != null ? bid : beAt) + "</b><small>" + (state === "sell" && bid != null ? usd(sellPL, sellPL >= 0 ? "profit" : "loss") : "break even") + "</small><small>" + (state === "sell" && bid != null ? "take the bid" : f >= beAt ? "in profit now" : pct(pcPush)) + "</small></span><span class=\"max\">Max profit" + (mx ? "<b>" + cents(mx.px) + "</b><small>" + usd(pos.qty*(mx.px - Core.fee(mx.px)) - cost, pos.qty*(mx.px - Core.fee(mx.px)) - cost >= 0 ? "profit" : "loss") + "</small><small>" + pct(mx.pt) + "</small>" : "<b>--</b><small>" + (m.avgN != null ? "settling" : "none above push") + "</small><small>&nbsp;</small>") + "</span><span class=\"cut" + (state === "cut" ? " on" : "") + "\">Cut<b>" + cents(floorPx) + "</b><small>" + usd(cutPL, "loss") + "</small><small>" + (state === "cut" ? "cut now" : pct(pcCut)) + "</small></span></div>";
-  $("posBody").className = ""; $("posBody").innerHTML = "<div class=\"kv\" style=\"border-top:0;padding-top:0\"><div><dt>You hold</dt><dd>" + pos.qty + " " + (pos.up ? "Up" : "Down") + " at " + pp(pos.px) + (tot.n > 1 ? " <small>avg, " + tot.n + " lots</small>" : "") + "</dd></div><div><dt>Worth now</dt><dd>" + cents(f) + " <small>$" + hold.toFixed(2) + "</small></dd></div><div><dt>Gain so far</dt><dd class=\"" + (markPL >= 0 ? "pos" : "neg") + "\">" + (markPL >= 0 ? "+" : "−") + "$" + Math.abs(markPL).toFixed(2) + "</dd></div><div><dt>" + (bid != null ? "If you sell at the bid" : "Bid now") + "</dt><dd" + (sellPL != null ? " class=\"" + (sellPL >= 0 ? "pos" : "neg") + "\"" : "") + ">" + (sellPL != null ? (sellPL >= 0 ? "+" : "−") + "$" + Math.abs(sellPL).toFixed(2) : "type it above") + "</dd></div></div>" + verd + "<p style=\"font-weight:600\">" + line + "</p>";
+  $("posBody").className = ""; $("posBody").innerHTML = "<div class=\"kv\" style=\"border-top:0;padding-top:0\"><div><dt>You hold</dt><dd>" + pos.qty + " " + (pos.up ? "Up" : "Down") + " at " + pp(pos.px) + (tot.n > 1 ? " <small>avg, " + tot.n + " lots</small>" : "") + "</dd></div><div><dt>Worth now</dt><dd>" + cents(f) + " <small>$" + hold.toFixed(2) + "</small></dd></div><div><dt>Gain so far</dt><dd class=\"" + (markPL >= 0 ? "pos" : "neg") + "\">" + (markPL >= 0 ? "+" : "−") + "$" + Math.abs(markPL).toFixed(2) + "</dd></div><div><dt>" + (bid != null ? "If you sell at the bid" : "Bid now") + "</dt><dd" + (sellPL != null ? " class=\"" + (sellPL >= 0 ? "pos" : "neg") + "\"" : "") + ">" + (sellPL != null ? (sellPL >= 0 ? "+" : "−") + "$" + Math.abs(sellPL).toFixed(2) : "type it above") + "</dd></div></div>" + verd + riskBoxes(tm, pos.qty, cost, m.avgN != null) + "<p style=\"font-weight:600\">" + line + "</p>";
 }
 function renderNext(n, tau){
   if (!n) return; var side = n.up ? "Up" : "Down";
@@ -769,6 +794,7 @@ $("perpSel").addEventListener("change", function(){ S.lastStats = 0; });
 $("trCsv").addEventListener("click", csv);
 try { if (localStorage.getItem("eth15kl.llOpen") === "1") $("llDet").open = true; } catch(e){} $("llDet").addEventListener("toggle", function(){ try { localStorage.setItem("eth15kl.llOpen", $("llDet").open ? "1" : "0"); } catch(e){} });
 ["posQty","posPx","posBid","posLoss","posSellPx","posAddQty","posAddPx"].forEach(sugWire); sug("posQty", 10); sug("posLoss", 50); sug("posAddQty", 10);
+$("scalpBtn").addEventListener("click", function(){ if (S.pos) return; S.scalp = !S.scalp; sugClear("posPx"); posHead(null, S.model && S.model.cur); });
 $("posBuy").addEventListener("click", posBuy); $("posAdd").addEventListener("click", posAdd); $("addLots").addEventListener("click", function(ev){ var b = ev.target.closest && ev.target.closest(".lotx"); if (b) posDropLot(parseInt(b.getAttribute("data-i"), 10)); }); $("posClear").addEventListener("click", posReset); $("posSold").addEventListener("click", posSold); $("tlCsv").addEventListener("click", tradesCsv);
 var armedT = 0; $("tlReset").addEventListener("click", function(){ var b = this; if (Date.now() - armedT < 4000) { S.trades = []; tradesSave(); renderTrades(); b.textContent = "Erase"; armedT = 0; } else { armedT = Date.now(); b.textContent = "Click again to erase"; setTimeout(function(){ b.textContent = "Erase"; }, 4000); } });
 posLoad(); renderTrades();
