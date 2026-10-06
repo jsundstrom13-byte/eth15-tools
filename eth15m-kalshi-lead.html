@@ -237,6 +237,11 @@ table.wide{min-width:560px}
       </section>
 
       <section class="panel">
+        <header><h2>Predictor track record</h2><span><span class="note" id="trN"></span> <button id="trCsv" type="button">Copy CSV</button> <button id="trReset" type="button">Erase</button></span></header>
+        <div id="trBody"><div class="empty">Each window's next-round call is saved twice: provisional at 5 minutes before the open, and firm at the open. It is scored when that window settles, about 90 seconds after its close. 96 windows a day; the intervals need about 30. Kept in this browser.</div></div>
+      </section>
+
+      <section class="panel">
         <header><h2>Lead measured live</h2><span class="note" id="llN"></span></header>
         <div id="llBody"><div class="empty">Collecting. The table fills in after about 2 minutes and settles after 10 to 15.</div></div>
       </section>
@@ -300,14 +305,14 @@ if (typeof module !== "undefined") module.exports = Core;
 (function(){
 "use strict";
 var DEMO = location.hash === "#demo";
-var WIN = 900000, END_LAG = 1000, BETA = 0.9, KEEP = 45*60000;
+var WIN = 900000, END_LAG = 1000, BETA = 0.9, KEEP = 45*60000, LOGKEY = "eth15kl.next.v1";
 var S3 = "https://kalshi-public-docs.s3.amazonaws.com/external/crypto/eth_history.json", CBREST = "https://api.exchange.coinbase.com/";
 function $(id){ return document.getElementById(id); }
 function inFinal(T){ return ((T/1000) % 900) >= 840; }
 var S = {
   raw: new Map(), avg: new Map(), pubs: [], lastM: 0, lastPubRecv: 0, lastPoll: 0, polling: false,
   feeds: {okx: [], krf: [], cb: []}, fresh: {okx: 0, krf: 0, cb: 0, ref: 0},
-  candles1m: new Map(), cbCandles: new Map(), cbVol: new Map(), volLive: new Map(), ewVar: null, win: null, model: null, stats: null, lastStats: 0, lastTick: 0, off: 0, offs: []
+  candles1m: new Map(), cbCandles: new Map(), cbVol: new Map(), volLive: new Map(), ewVar: null, log: [], lastSettleCheck: 0, win: null, model: null, stats: null, lastStats: 0, lastTick: 0, off: 0, offs: []
 };
 function perpKey(){ return $("perpSel").value; }
 
@@ -372,7 +377,7 @@ function strikeFor(ws){
 /* ---------- model ---------- */
 function compute(){
   var t = Date.now() - S.off, ws = Math.floor(t/WIN)*WIN;
-  if (!S.win || S.win.ws !== ws) S.win = {ws: ws, end: ws + WIN, K: null, series: []};
+  if (!S.win || S.win.ws !== ws) { var prevWin = S.win; S.win = {ws: ws, end: ws + WIN, K: null, series: []}; rollover(prevWin); }
   var win = S.win, st = strikeFor(ws); if (st) win.K = st.K;
   var M = S.lastM, R = M ? S.raw.get(M) : null, key = perpKey(), a = S.feeds[key];
   var pNow = a.length ? a[a.length-1][2] : null, pFresh = Date.now() - S.fresh[key] < 5000, b = M ? basis(key, M) : null;
@@ -388,9 +393,43 @@ function compute(){
     m.p = r.p; m.z = r.z; m.sdAbs = Snow*r.sd; m.sigMin = sigMin; m.expFinal = expFinal; m.tau = tau;
     var sec = Math.floor(t/1000)*1000; if (!win.series.length || win.series[win.series.length-1][0] !== sec) win.series.push([sec, r.p]);
   }
-  if (Snow) m.next = nextRound(Snow, m, t, win);
+  if (Snow) { m.next = nextRound(Snow, m, t, win); var tl = (win.end - t)/1000; if (m.next.firm) win.callFirm = snap(m.next, t); if (tl <= 300 && tl > 294 && !win.callProv) win.callProv = snap(m.next, t); }
   S.model = m;
 }
+function snap(n, t){ return {t: t, up: n.up, p: n.p, z0: n.z0, h: n.h, q: n.q, Kn: n.Kn, entry: n.entry, sell: n.sell, stop: n.stop, sig: n.sigMin, vol: n.volRatio, tradeable: n.tradeable, askUp: parseFloat($("askUp").value) || null, askDn: parseFloat($("askDn").value) || null}; }
+function rollover(prev){
+  if (!prev || (!prev.callFirm && !prev.callProv)) return;
+  S.log.push({ws: prev.end, firm: prev.callFirm || null, prov: prev.callProv || null, K: null, res: null, out: null}); saveLog(); renderTrack();
+}
+function settleCheck(){
+  var changed = false; S.log.forEach(function(r){ if (r.out != null) return; var K = S.candles1m.get(r.ws - 60000), res = S.candles1m.get(r.ws + 840000); if (K != null) r.K = K; if (K != null && res != null) { r.res = res; r.out = res > K ? 1 : 0; changed = true; } });
+  if (changed) { saveLog(); renderTrack(); }
+}
+function loadLog(){ if (DEMO) return; try { var j = JSON.parse(localStorage.getItem(LOGKEY) || "[]"); if (Array.isArray(j)) S.log = j; } catch(e){} }
+function saveLog(){ if (DEMO) return; try { if (S.log.length > 3000) S.log = S.log.slice(-3000); localStorage.setItem(LOGKEY, JSON.stringify(S.log)); } catch(e){} }
+function renderTrack(){
+  var recs = S.log.filter(function(r){ return r.out != null; }), pend = S.log.length - recs.length;
+  setTxt("trN", recs.length ? recs.length + " scored" + (pend ? ", " + pend + " pending" : "") : (pend ? pend + " pending" : ""));
+  if (!recs.length) return;
+  var h = "<div class=\"scroll\"><table class=\"wide\"><thead><tr><th>Call</th><th class=\"r\">n</th><th class=\"r\">Right (95%)</th><th class=\"r\">Log-loss</th><th class=\"r\">Trades</th><th class=\"r\">P&amp;L at entry</th><th class=\"r\">P&amp;L at 50\u00a2</th></tr></thead><tbody>";
+  [["firm","At the open"],["prov","5 min before"]].forEach(function(kk){
+    var n=0, hit=0, ll=0, tr=[], t50=[]; recs.forEach(function(r){ var c = r[kk[0]]; if (!c) return; n++; var y = r.out; if (c.up === (y === 1)) hit++; var p = Math.min(0.995, Math.max(0.005, c.p)); ll += y ? -Math.log(p) : -Math.log(1-p);
+      if (c.tradeable) { var win = c.up === (y === 1) ? 1 : 0, e = c.entry; tr.push(win - e - Core.fee(e)); t50.push(win - 0.5 - Core.fee(0.5)); } });
+    if (!n) return; var w = Core.wilson(hit, n), mt = function(a){ if (!a.length) return "--"; var m = a.reduce(function(x,y){ return x+y; },0)/a.length, sd = Math.sqrt(a.reduce(function(x,y){ return x+(y-m)*(y-m); },0)/Math.max(1,a.length-1)); return sgn(100*m,1) + "\u00a2" + (a.length > 2 ? " <span class=\"note\">t " + (m/(sd/Math.sqrt(a.length))).toFixed(1) + "</span>" : ""); };
+    h += "<tr><td>" + kk[1] + "</td><td class=\"num\">" + n + "</td><td class=\"num\">" + (100*hit/n).toFixed(0) + "% <span class=\"note\">" + (100*w[0]).toFixed(0) + " to " + (100*w[1]).toFixed(0) + "</span></td><td class=\"num\">" + (ll/n).toFixed(3) + "</td><td class=\"num\">" + tr.length + "</td><td class=\"num\">" + mt(tr) + "</td><td class=\"num\">" + mt(t50) + "</td></tr>"; });
+  h += "</tbody></table></div>";
+  // inputs: sign of each input at the open vs outcome
+  var rows = [["Price vs forming target", function(c){ return c.z0; }, 1], ["Hour momentum (reversal)", function(c){ return c.h; }, -1], ["15-min momentum (reversal)", function(c){ return c.q; }, -1]];
+  h += "<div class=\"scroll\"><table><thead><tr><th>Input at the open</th><th class=\"r\">n</th><th class=\"r\">Sign right</th><th class=\"r\">z</th></tr></thead><tbody>";
+  rows.forEach(function(rw){ var n=0, hit=0; recs.forEach(function(r){ var c = r.firm; if (!c) return; var v = rw[1](c)*rw[2]; if (!v || Math.abs(v) < 0.05) return; n++; if ((v > 0) === (r.out === 1)) hit++; }); h += "<tr><td>" + rw[0] + "</td><td class=\"num\">" + n + "</td><td class=\"num\">" + (n ? (100*hit/n).toFixed(0) + "%" : "--") + "</td><td class=\"num\">" + (n >= 10 ? ((hit/n-0.5)/Math.sqrt(0.25/n)).toFixed(1) : "--") + "</td></tr>"; });
+  var hiV=[0,0], loV=[0,0]; recs.forEach(function(r){ var c = r.firm; if (!c || c.vol == null) return; var b = c.vol >= 1 ? hiV : loV; b[1]++; if (c.up === (r.out === 1)) b[0]++; });
+  h += "<tr><td>Call accuracy when volume \u2265 usual</td><td class=\"num\">" + hiV[1] + "</td><td class=\"num\">" + (hiV[1] ? (100*hiV[0]/hiV[1]).toFixed(0) + "%" : "--") + "</td><td class=\"num\">--</td></tr><tr><td>Call accuracy when volume below usual</td><td class=\"num\">" + loV[1] + "</td><td class=\"num\">" + (loV[1] ? (100*loV[0]/loV[1]).toFixed(0) + "%" : "--") + "</td><td class=\"num\">--</td></tr></tbody></table></div>";
+  h += "<p class=\"note\" style=\"margin-top:8px\">Trades count calls with an edge after fee. P&amp;L at entry assumes a fill at the buy-up-to price, the best case; at 50\u00a2 assumes the usual opening quote. Both are per contract after Kalshi's fee. Only a Kalshi order-book feed would give real fills.</p>";
+  $("trBody").innerHTML = h;
+}
+function csv(){ var h = ["window_open_utc","call_at","direction","p_up","z_price_vs_target","hour_momentum","m15_momentum","vol_ratio","sigma_bp_min","entry","sell","stop","target","result","outcome_up"], out = [h.join(",")];
+  S.log.forEach(function(r){ ["firm","prov"].forEach(function(k){ var c = r[k]; if (!c) return; out.push([new Date(r.ws).toISOString(), k, c.up ? "Up" : "Down", c.p.toFixed(4), c.z0.toFixed(3), c.h.toFixed(3), c.q.toFixed(3), c.vol == null ? "" : c.vol.toFixed(2), (1e4*c.sig).toFixed(2), c.entry.toFixed(3), c.sell.toFixed(3), c.stop.toFixed(3), r.K == null ? "" : r.K, r.res == null ? "" : r.res, r.out == null ? "" : r.out].join(",")); }); });
+  var txt = out.join("\n"); if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function(){ setTxt("trCsv", "Copied"); setTimeout(function(){ setTxt("trCsv", "Copy CSV"); }, 2000); }, function(){ setTxt("trCsv", "Copy failed"); }); }
 // Next-window call from the price against the forming target, hour and 15-minute momentum (both reverse), with volatility setting the prices.
 function nextRound(Snow, m, t, win){
   var sigMin = m.sigMin || Math.sqrt(S.ewVar || 25e-8), sigSec = sigMin/Math.sqrt(60), mi = Math.floor(t/60000)*60000;
@@ -537,7 +576,7 @@ function drawVol(){
   var cur = bars[bars.length-1][1], prev = bars[bars.length-2][1], into = ((t - mi)/60000);
   setTxt("volNote", med == null ? "Coinbase ETH-USD, per minute" : "This minute so far " + cur.toFixed(1) + " ETH" + (into > 0.1 ? ", pace " + (cur/into/med).toFixed(1) + "\u00d7 usual" : "") + "; last full minute " + (prev/med).toFixed(1) + "\u00d7 usual");
 }
-function tick(){ S.lastTick = Date.now(); try { compute(); render(); } catch(e){ console.error(e); } if (Date.now() - S.lastStats > 5000) { S.lastStats = Date.now(); try { renderStats(measure()); } catch(e){ console.error(e); } } }
+function tick(){ S.lastTick = Date.now(); try { compute(); render(); } catch(e){ console.error(e); } if (Date.now() - S.lastSettleCheck > 20000) { S.lastSettleCheck = Date.now(); try { settleCheck(); } catch(e){ console.error(e); } } if (Date.now() - S.lastStats > 5000) { S.lastStats = Date.now(); try { renderStats(measure()); } catch(e){ console.error(e); } } }
 
 /* ---------- demo feed (open with #demo) ---------- */
 function startDemo(){
@@ -551,11 +590,17 @@ function startDemo(){
     var tail = path.slice(-120), adj = [], ts = []; for (var k=60;k<120;k++){ var s = 0; for (var q=k-59;q<=k;q++) s += tail[q][1]; ts.push(s/60); adj.push(tail[k][1]); }
     var M = tail[119][0], c = {}; c["1M"] = []; for (var mm = Math.floor(path[0][0]/60000)*60000 + 60000; mm < M; mm += 60000){ var s2 = 0, n2 = 0; for (var q2=0;q2<path.length;q2++) if (path[q2][0] > mm && path[q2][0] <= mm + 60000){ s2 += path[q2][1]; n2++; } if (n2 === 60) c["1M"].push({open_ts_ms: mm, close: s2/60}); }
     ingest({maturity_ts_ms: M, timeseries: ts, timeseries_adjusted: adj, candlesticks: c}, Date.now()); nudge(); }, 2500);
+  var ws0 = Math.floor(now/WIN)*WIN; for (i=60;i>=1;i--){ var z = rnd()*0.4, hh = rnd()*0.8, qq = rnd()*0.9, pu = Core.t4(0.97*z - 0.095*hh - 0.04*qq), up = pu >= 0.5, ps = up ? pu : 1-pu, e = ps - Core.fee(ps) - 0.01, out = Math.random() < pu ? 1 : 0;
+    var c = {t: 0, up: up, p: pu, z0: z, h: hh, q: qq, Kn: 2700, entry: e, sell: 0.7, stop: 0.3, sig: 5e-4, vol: 0.6 + Math.random(), tradeable: e > 0.505, askUp: null, askDn: null};
+    S.log.push({ws: ws0 - i*WIN, firm: c, prov: Object.assign({}, c, {p: 0.5 + (pu-0.5)*0.5}), K: 2700, res: out ? 2701 : 2699, out: out}); }
 }
 
 /* ---------- boot ---------- */
 $("perpSel").addEventListener("change", function(){ S.lastStats = 0; });
-if (DEMO) startDemo(); else { connectAll(); seedVol(); setInterval(seedVol, 300000); }
+$("trCsv").addEventListener("click", csv);
+var armed = 0; $("trReset").addEventListener("click", function(){ var b = this; if (Date.now() - armed < 4000) { S.log = []; saveLog(); $("trBody").innerHTML = "<div class=\"empty\">Erased. New calls are saved from the next window on.</div>"; setTxt("trN", ""); b.textContent = "Erase"; armed = 0; } else { armed = Date.now(); b.textContent = "Click again to erase"; setTimeout(function(){ b.textContent = "Erase"; }, 4000); } });
+loadLog(); renderTrack();
+if (DEMO) { startDemo(); renderTrack(); } else { connectAll(); seedVol(); setInterval(seedVol, 300000); }
 setInterval(poll, 1000); setInterval(tick, 250); setInterval(function(){ try { draw(); drawVol(); } catch(e){ console.error(e); } }, 1000);
 window.addEventListener("resize", function(){ draw(); drawVol(); });
 window.__app = S;
