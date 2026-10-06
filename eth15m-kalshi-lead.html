@@ -210,7 +210,9 @@ table.wide{min-width:560px}
           <div><dt>ETH for the sell target</dt><dd><span id="crEthFor">--</span></dd></div>
           <div><dt>ETH for the cut</dt><dd><span id="crEthAg">--</span></dd></div>
         </dl>
-        <div class="row" style="border-top:1px solid var(--line);padding-top:12px">
+        <div class="possec" id="posSec">
+          <div class="possec-h"><h3 id="posTitle">Current bet</h3><span class="lean" id="posSide">No position</span></div>
+        <div class="row">
           <button id="posBuy" type="button">Purchased</button>
           <label for="posQty">shares</label><input type="number" id="posQty" min="1" step="1" value="10" style="width:64px" inputmode="numeric">
           <label for="posPx">at &cent;</label><input type="number" id="posPx" min="1" max="99" step="0.1" placeholder="--" style="width:72px" inputmode="decimal">
@@ -223,8 +225,9 @@ table.wide{min-width:560px}
           <span class="note">logs the trade and clears the position</span>
           <button id="posClear" type="button">Clear without logging</button>
         </div>
-        <style>.verd{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 6px}.verd span{flex:1;min-width:80px;text-align:center;padding:8px 6px;border-radius:8px;background:var(--sunk);color:var(--muted);font-weight:600;font-size:14px;opacity:.55}.verd span.on{opacity:1;color:var(--surface)}.verd span.on.hold{background:var(--accent)}.verd span.on.sell{background:var(--up)}.verd span.on.cut{background:var(--down)}</style>
+        <style>.possec{margin-top:14px;padding:10px 0 2px 12px;border-top:2px solid var(--line);border-left:4px solid var(--line);transition:border-color .3s}.possec.up{border-color:var(--up)}.possec.down{border-color:var(--down)}.possec.up h3{color:var(--up)}.possec.down h3{color:var(--down)}.possec-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}.verd{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 6px}.verd span{flex:1;min-width:80px;text-align:center;padding:8px 6px;border-radius:8px;background:var(--sunk);color:var(--muted);font-weight:600;font-size:14px;opacity:.55}.verd span.on{opacity:1;color:var(--surface)}.verd span.on.hold{background:var(--accent)}.verd span.on.sell{background:var(--up)}.verd span.on.cut{background:var(--down)}</style>
         <div id="posBody" class="empty">No position. Purchased records the called side at the buy price shown, 10 shares; edit the price or shares to match your fill.</div>
+        </div>
         <p class="note">Prices are for the called side. Buy is fair value less the fee and a 1&cent; margin. Sell and cut are the contract's fair value after a one-sigma ETH move for or against you over the next few minutes; the ETH levels are where that move lands. If a typed ask is at or under the buy price, the call says buy now.</p>
       </section>
 
@@ -589,7 +592,7 @@ function tradesSave(){ try { localStorage.setItem("eth15kl.trades", JSON.stringi
 function posBuy(){ var c = S.model && S.model.cur, win = S.win; if (!c || !win || c.final) return; var px = parseFloat($("posPx").value), q = parseInt($("posQty").value, 10) || 10;
   if (!(px > 0 && px < 100)) { px = Math.round(1000*c.entry)/10; $("posPx").value = px; }
   S.pos = {ws: win.ws, up: c.up, qty: q, px: px/100, t: Date.now() - S.off, K: win.K, pAtBuy: c.ps}; posSave(); $("posBid").value = ""; }
-function posReset(){ S.pos = null; posSave(); $("posBid").value = ""; $("posSellPx").value = ""; $("posBody").className = "empty"; $("posBody").textContent = "No position. Purchased records the called side at the buy price shown, 10 shares; edit the price or shares to match your fill."; }
+function posReset(){ S.pos = null; posSave(); posHead(null, S.model && S.model.cur); $("posBid").value = ""; $("posSellPx").value = ""; $("posBody").className = "empty"; $("posBody").textContent = "No position. Purchased records the called side at the buy price shown, 10 shares; edit the price or shares to match your fill."; }
 function logTrade(pos, sellPx, how, fAtSale){
   var feeIn = Core.fee(pos.px), feeOut = how === "sold" ? Core.fee(sellPx) : 0, pl = pos.qty*(sellPx - pos.px - feeIn - feeOut);
   S.trades.push({ws: pos.ws, up: pos.up, qty: pos.qty, buy: pos.px, sell: sellPx, how: how, pl: pl, tBuy: pos.t, tSell: Date.now() - S.off, fair: fAtSale == null ? null : fAtSale, pBuy: pos.pAtBuy == null ? null : pos.pAtBuy});
@@ -611,8 +614,14 @@ function tradesCsv(){ var out = ["window_open_utc,window_et,side,shares,buy_cent
   S.trades.forEach(function(t){ out.push([new Date(t.ws).toISOString(), etRange(t.ws, t.ws + WIN).replace(/ /g, " "), t.up ? "Up" : "Down", t.qty, (100*t.buy).toFixed(1), (100*t.sell).toFixed(1), t.how, Math.max(0, Math.round((t.tSell - t.tBuy)/1000)), t.pl.toFixed(2), t.pBuy == null ? "" : t.pBuy.toFixed(3), t.fair == null ? "" : t.fair.toFixed(3)].join(",")); });
   var txt = out.join("\n"); if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function(){ setTxt("tlCsv", "Copied"); setTimeout(function(){ setTxt("tlCsv", "Copy CSV"); }, 2000); }, function(){ setTxt("tlCsv", "Copy failed"); }); }
 function cents(x){ return Math.ceil(100*x - 1e-9) + "¢"; }
+function posHead(pos, c){
+  var up = pos ? pos.up : (c ? c.up : null), side = up == null ? "" : (up ? "Up" : "Down"), cls = up == null ? "" : (up ? "up" : "down");
+  setCls("posSec", "possec " + cls); setTxt("posTitle", pos ? "Current bet: " + pos.qty + " " + side : "Current bet");
+  setCls("posSide", "lean " + cls); setTxt("posSide", pos ? "Holding " + side + " at " + pp(pos.px) : (side ? "Not in yet \u00b7 call is " + side : "No position"));
+}
 function renderPos(m, tau){
   var pos = S.pos, win = S.win; $("posSellRow").hidden = !pos; $("posBuy").hidden = !!pos;
+  posHead(pos, m && m.cur);
   if (!pos || !win || !m || m.p == null) return;
   if (pos.ws !== win.ws) { $("posBody").className = ""; $("posBody").innerHTML = "<p class=\"note\">Your " + pos.qty + " " + (pos.up ? "Up" : "Down") + " from " + etRange(pos.ws, pos.ws + WIN) + " ran to the close. It will be logged at its settlement value as soon as Kalshi posts the result, usually within 2 minutes.</p>"; return; }
   var px = parseFloat($("posPx").value); if (px > 0 && px < 100) pos.px = px/100; var q = parseInt($("posQty").value, 10); if (q > 0) pos.qty = q;
