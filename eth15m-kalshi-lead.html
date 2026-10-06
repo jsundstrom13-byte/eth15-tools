@@ -228,6 +228,16 @@ table.wide{min-width:560px}
         <style>.possec{margin-top:14px;padding:10px 0 2px 12px;border-top:2px solid var(--line);border-left:4px solid var(--line);transition:border-color .3s}.possec.up{border-color:var(--up)}.possec.down{border-color:var(--down)}.possec.up h3{color:var(--up)}.possec.down h3{color:var(--down)}.possec-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}.verd{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 6px}.verd span{flex:1;min-width:80px;text-align:center;padding:8px 6px;border-radius:8px;background:var(--sunk);color:var(--muted);font-weight:600;font-size:14px;opacity:.55}.verd span.on{opacity:1;color:var(--surface)}.verd span.on.hold{background:var(--accent)}.verd span.on.sell{background:var(--up)}.verd span.on.cut{background:var(--down)}</style>
         <div id="posBody" class="empty">No position. Purchased records the called side at the buy price shown, 10 shares; edit the price or shares to match your fill.</div>
         </div>
+        <div class="possec" id="addSec" hidden>
+          <div class="possec-h"><h3 id="addTitle">Add to this bet</h3><span class="note" id="addNote"></span></div>
+          <div class="row">
+            <button id="posAdd" type="button">Bought more</button>
+            <label for="posAddQty">shares</label><input type="number" id="posAddQty" min="1" step="1" value="10" style="width:64px" inputmode="numeric">
+            <label for="posAddPx">at &cent;</label><input type="number" id="posAddPx" min="1" max="99" step="0.1" placeholder="--" style="width:72px" inputmode="decimal">
+          </div>
+          <div id="addLots"></div>
+          <p class="note">Each lot keeps its own price and fee. Hold, sell and cut above are judged on the whole position at its average cost. The first lot stays editable in the shares and price boxes above; remove a lot here if it was typed by mistake.</p>
+        </div>
         <p class="note">Prices are for the called side. Buy is fair value less the fee and a 1&cent; margin. Sell and cut are the contract's fair value after a one-sigma ETH move for or against you over the next few minutes; the ETH levels are where that move lands. If a typed ask is at or under the buy price, the call says buy now.</p>
       </section>
 
@@ -591,11 +601,11 @@ function posLoad(){ try { var j = JSON.parse(localStorage.getItem("eth15kl.pos")
 function tradesSave(){ try { localStorage.setItem("eth15kl.trades", JSON.stringify(S.trades.slice(-500))); } catch(e){} }
 function posBuy(){ var c = S.model && S.model.cur, win = S.win; if (!c || !win || c.final) return; var px = parseFloat($("posPx").value), q = parseInt($("posQty").value, 10) || 10;
   if (!(px > 0 && px < 100)) { px = Math.round(1000*c.entry)/10; $("posPx").value = px; }
-  S.pos = {ws: win.ws, up: c.up, qty: q, px: px/100, t: Date.now() - S.off, K: win.K, pAtBuy: c.ps}; posSave(); $("posBid").value = ""; }
-function posReset(){ S.pos = null; posSave(); posHead(null, S.model && S.model.cur); $("posBid").value = ""; $("posSellPx").value = ""; $("posBody").className = "empty"; $("posBody").textContent = "No position. Purchased records the called side at the buy price shown, 10 shares; edit the price or shares to match your fill."; }
+  var t0 = Date.now() - S.off; S.pos = {ws: win.ws, up: c.up, qty: q, px: px/100, t: t0, K: win.K, pAtBuy: c.ps, lots: [{qty: q, px: px/100, t: t0}]}; posSave(); $("posBid").value = ""; $("addLots").innerHTML = ""; }
+function posReset(){ S.pos = null; posSave(); posHead(null, S.model && S.model.cur); $("addSec").hidden = true; $("addLots").innerHTML = ""; $("posBid").value = ""; $("posSellPx").value = ""; $("posBody").className = "empty"; $("posBody").textContent = "No position. Purchased records the called side at the buy price shown, 10 shares; edit the price or shares to match your fill."; }
 function logTrade(pos, sellPx, how, fAtSale){
-  var feeIn = Core.fee(pos.px), feeOut = how === "sold" ? Core.fee(sellPx) : 0, pl = pos.qty*(sellPx - pos.px - feeIn - feeOut);
-  S.trades.push({ws: pos.ws, up: pos.up, qty: pos.qty, buy: pos.px, sell: sellPx, how: how, pl: pl, tBuy: pos.t, tSell: Date.now() - S.off, fair: fAtSale == null ? null : fAtSale, pBuy: pos.pAtBuy == null ? null : pos.pAtBuy});
+  var tot = posTotals(pos), feeOut = how === "sold" ? Core.fee(sellPx) : 0, pl = tot.qty*(sellPx - feeOut) - tot.cost;
+  S.trades.push({ws: pos.ws, up: pos.up, qty: tot.qty, buy: tot.avg, lots: tot.n, sell: sellPx, how: how, pl: pl, tBuy: pos.t, tSell: Date.now() - S.off, fair: fAtSale == null ? null : fAtSale, pBuy: pos.pAtBuy == null ? null : pos.pAtBuy});
   tradesSave(); renderTrades();
 }
 function posSold(){ var pos = S.pos, m = S.model; if (!pos) return; var px = parseFloat($("posSellPx").value); if (!(px > 0 && px < 100)) { var b = parseFloat($("posBid").value); if (b > 0 && b < 100) px = b; else return; }
@@ -614,19 +624,29 @@ function tradesCsv(){ var out = ["window_open_utc,window_et,side,shares,buy_cent
   S.trades.forEach(function(t){ out.push([new Date(t.ws).toISOString(), etRange(t.ws, t.ws + WIN).replace(/ /g, " "), t.up ? "Up" : "Down", t.qty, (100*t.buy).toFixed(1), (100*t.sell).toFixed(1), t.how, Math.max(0, Math.round((t.tSell - t.tBuy)/1000)), t.pl.toFixed(2), t.pBuy == null ? "" : t.pBuy.toFixed(3), t.fair == null ? "" : t.fair.toFixed(3)].join(",")); });
   var txt = out.join("\n"); if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function(){ setTxt("tlCsv", "Copied"); setTimeout(function(){ setTxt("tlCsv", "Copy CSV"); }, 2000); }, function(){ setTxt("tlCsv", "Copy failed"); }); }
 function cents(x){ return Math.ceil(100*x - 1e-9) + "¢"; }
+function posLots(pos){ if (!pos.lots || !pos.lots.length) pos.lots = [{qty: pos.qty, px: pos.px, t: pos.t}]; return pos.lots; }
+function posTotals(pos){ var L = posLots(pos), q = 0, cost = 0, paid = 0; L.forEach(function(l){ q += l.qty; paid += l.qty*l.px; cost += l.qty*(l.px + Core.fee(l.px)); }); pos.qty = q; pos.px = q ? paid/q : 0; return {qty: q, cost: cost, avg: pos.px, fee: cost - paid, n: L.length}; }
+function posAdd(){ var pos = S.pos, win = S.win; if (!pos || !win || pos.ws !== win.ws) return; var px = parseFloat($("posAddPx").value), q = parseInt($("posAddQty").value, 10) || 10; if (!(px > 0 && px < 100)) return;
+  posLots(pos).push({qty: q, px: px/100, t: Date.now() - S.off}); posTotals(pos); posSave(); $("posAddPx").value = ""; }
+function posDropLot(i){ var pos = S.pos; if (!pos) return; var L = posLots(pos); if (L.length < 2) return; L.splice(i, 1); posTotals(pos); posSave(); }
 function posHead(pos, c){
   var up = pos ? pos.up : (c ? c.up : null), side = up == null ? "" : (up ? "Up" : "Down"), cls = up == null ? "" : (up ? "up" : "down");
   setCls("posSec", "possec " + cls); setTxt("posTitle", pos ? "Current bet: " + pos.qty + " " + side : "Current bet");
-  setCls("posSide", "lean " + cls); setTxt("posSide", pos ? "Holding " + side + " at " + pp(pos.px) : (side ? "Not in yet \u00b7 call is " + side : "No position"));
+  setCls("posSide", "lean " + cls); setTxt("posSide", pos ? "Holding " + side + " at " + pp(pos.px) + (pos.lots && pos.lots.length > 1 ? " avg" : "") : (side ? "Not in yet \u00b7 call is " + side : "No position"));
 }
 function renderPos(m, tau){
   var pos = S.pos, win = S.win; $("posSellRow").hidden = !pos; $("posBuy").hidden = !!pos;
   posHead(pos, m && m.cur);
   if (!pos || !win || !m || m.p == null) return;
   if (pos.ws !== win.ws) { $("posBody").className = ""; $("posBody").innerHTML = "<p class=\"note\">Your " + pos.qty + " " + (pos.up ? "Up" : "Down") + " from " + etRange(pos.ws, pos.ws + WIN) + " ran to the close. It will be logged at its settlement value as soon as Kalshi posts the result, usually within 2 minutes.</p>"; return; }
-  var px = parseFloat($("posPx").value); if (px > 0 && px < 100) pos.px = px/100; var q = parseInt($("posQty").value, 10); if (q > 0) pos.qty = q;
-  var f = pos.up ? m.p : 1 - m.p, bidIn = parseFloat($("posBid").value)/100, bid = bidIn > 0 && bidIn < 1 ? bidIn : null, lossPct = (parseFloat($("posLoss").value) || 50)/100;
-  var feeIn = Core.fee(pos.px), cost = pos.qty*(pos.px + feeIn), hold = pos.qty*f, markPL = hold - cost;
+  var L = posLots(pos), px = parseFloat($("posPx").value); if (px > 0 && px < 100) L[0].px = px/100; var q = parseInt($("posQty").value, 10); if (q > 0) L[0].qty = q;
+  var tot = posTotals(pos), f = pos.up ? m.p : 1 - m.p, bidIn = parseFloat($("posBid").value)/100, bid = bidIn > 0 && bidIn < 1 ? bidIn : null, lossPct = (parseFloat($("posLoss").value) || 50)/100;
+  var cost = tot.cost, hold = pos.qty*f, markPL = hold - cost;
+  $("addSec").hidden = false; setCls("addSec", "possec " + (pos.up ? "up" : "down"));
+  if (document.activeElement !== $("posAddPx") && !$("posAddPx").value) $("posAddPx").placeholder = (Math.round(1000*Math.max(0.01, f - Core.fee(f) - 0.01))/10).toFixed(1);
+  setTxt("addNote", tot.n > 1 ? tot.n + " lots, " + tot.qty + " " + (pos.up ? "Up" : "Down") + " at " + pp(tot.avg) + " average" : "one lot so far");
+  var lh = ""; if (tot.n > 1) { lh = "<table style=\"margin:4px 0 6px\"><thead><tr><th>Lot</th><th class=\"r\">Shares</th><th class=\"r\">Price</th><th class=\"r\">Cost with fee</th><th></th></tr></thead><tbody>"; L.forEach(function(l, i){ lh += "<tr><td>" + (i+1) + (i ? "" : " (editable above)") + "</td><td class=\"num\">" + l.qty + "</td><td class=\"num\">" + pp(l.px) + "</td><td class=\"num\">$" + (l.qty*(l.px + Core.fee(l.px))).toFixed(2) + "</td><td>" + (i ? "<button type=\"button\" class=\"lotx\" data-i=\"" + i + "\" style=\"padding:2px 8px;font-size:12px\">remove</button>" : "") + "</td></tr>"; }); lh += "</tbody></table>"; }
+  if ($("addLots").innerHTML !== lh) $("addLots").innerHTML = lh;
   var sellAt = f + Core.fee(f), sellVal = bid != null ? pos.qty*(bid - Core.fee(bid)) : null, sellPL = sellVal != null ? sellVal - cost : null;
   var floorPx = cost*(1 - lossPct)/pos.qty;
   if (document.activeElement !== $("posSellPx")) $("posSellPx").value = bid != null ? Math.round(100*bid) : Math.ceil(100*sellAt - 1e-9);
@@ -638,7 +658,7 @@ function renderPos(m, tau){
   else if (tau <= 90) { state = "hold"; line = "Last call. Sell only for " + cents(sellAt) + " or more; otherwise hold to settlement."; }
   else { state = "hold"; line = "Hold. Sell if offered " + cents(sellAt) + " or more. Cut if it drops to " + cents(floorPx) + "."; }
   var verd = "<div class=\"verd\"><span class=\"hold" + (state === "hold" ? " on" : "") + "\">Hold</span><span class=\"sell" + (state === "sell" ? " on" : "") + "\">Sell</span><span class=\"cut" + (state === "cut" ? " on" : "") + "\">Cut</span></div>";
-  $("posBody").className = ""; $("posBody").innerHTML = "<div class=\"kv\" style=\"border-top:0;padding-top:0\"><div><dt>You hold</dt><dd>" + pos.qty + " " + (pos.up ? "Up" : "Down") + " at " + pp(pos.px) + "</dd></div><div><dt>Worth now</dt><dd>" + cents(f) + " <small>$" + hold.toFixed(2) + "</small></dd></div><div><dt>Gain so far</dt><dd class=\"" + (markPL >= 0 ? "pos" : "neg") + "\">" + (markPL >= 0 ? "+" : "−") + "$" + Math.abs(markPL).toFixed(2) + "</dd></div><div><dt>Sell if offered</dt><dd>" + cents(sellAt) + " <small>or more</small></dd></div><div><dt>Cut if it drops to</dt><dd>" + cents(floorPx) + "</dd></div><div><dt>" + (bid != null ? "If you sell at the bid" : "Bid now") + "</dt><dd" + (sellPL != null ? " class=\"" + (sellPL >= 0 ? "pos" : "neg") + "\"" : "") + ">" + (sellPL != null ? (sellPL >= 0 ? "+" : "−") + "$" + Math.abs(sellPL).toFixed(2) : "type it above") + "</dd></div></div>" + verd + "<p style=\"font-weight:600\">" + line + "</p>";
+  $("posBody").className = ""; $("posBody").innerHTML = "<div class=\"kv\" style=\"border-top:0;padding-top:0\"><div><dt>You hold</dt><dd>" + pos.qty + " " + (pos.up ? "Up" : "Down") + " at " + pp(pos.px) + (tot.n > 1 ? " <small>avg, " + tot.n + " lots</small>" : "") + "</dd></div><div><dt>Worth now</dt><dd>" + cents(f) + " <small>$" + hold.toFixed(2) + "</small></dd></div><div><dt>Gain so far</dt><dd class=\"" + (markPL >= 0 ? "pos" : "neg") + "\">" + (markPL >= 0 ? "+" : "−") + "$" + Math.abs(markPL).toFixed(2) + "</dd></div><div><dt>Sell if offered</dt><dd>" + cents(sellAt) + " <small>or more</small></dd></div><div><dt>Cut if it drops to</dt><dd>" + cents(floorPx) + "</dd></div><div><dt>" + (bid != null ? "If you sell at the bid" : "Bid now") + "</dt><dd" + (sellPL != null ? " class=\"" + (sellPL >= 0 ? "pos" : "neg") + "\"" : "") + ">" + (sellPL != null ? (sellPL >= 0 ? "+" : "−") + "$" + Math.abs(sellPL).toFixed(2) : "type it above") + "</dd></div></div>" + verd + "<p style=\"font-weight:600\">" + line + "</p>";
 }
 function renderNext(n, tau){
   if (!n) return; var side = n.up ? "Up" : "Down";
@@ -712,7 +732,7 @@ function startDemo(){
 /* ---------- boot ---------- */
 $("perpSel").addEventListener("change", function(){ S.lastStats = 0; });
 $("trCsv").addEventListener("click", csv);
-$("posBuy").addEventListener("click", posBuy); $("posClear").addEventListener("click", posReset); $("posSold").addEventListener("click", posSold); $("tlCsv").addEventListener("click", tradesCsv);
+$("posBuy").addEventListener("click", posBuy); $("posAdd").addEventListener("click", posAdd); $("addLots").addEventListener("click", function(ev){ var b = ev.target.closest && ev.target.closest(".lotx"); if (b) posDropLot(parseInt(b.getAttribute("data-i"), 10)); }); $("posClear").addEventListener("click", posReset); $("posSold").addEventListener("click", posSold); $("tlCsv").addEventListener("click", tradesCsv);
 var armedT = 0; $("tlReset").addEventListener("click", function(){ var b = this; if (Date.now() - armedT < 4000) { S.trades = []; tradesSave(); renderTrades(); b.textContent = "Erase"; armedT = 0; } else { armedT = Date.now(); b.textContent = "Click again to erase"; setTimeout(function(){ b.textContent = "Erase"; }, 4000); } });
 posLoad(); renderTrades();
 var armed = 0; $("trReset").addEventListener("click", function(){ var b = this; if (Date.now() - armed < 4000) { S.log = []; saveLog(); $("trBody").innerHTML = "<div class=\"empty\">Erased. New calls are saved from the next window on.</div>"; setTxt("trN", ""); b.textContent = "Erase"; armed = 0; } else { armed = Date.now(); b.textContent = "Click again to erase"; setTimeout(function(){ b.textContent = "Erase"; }, 4000); } });
