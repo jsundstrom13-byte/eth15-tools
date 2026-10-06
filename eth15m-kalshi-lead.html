@@ -162,19 +162,8 @@ table.wide{min-width:560px}
           </select>
           <label for="kxProxy">Kalshi proxy</label><input type="url" id="kxProxy" placeholder="https://…workers.dev" style="font:13px var(--mono);color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:5px 8px;width:220px;max-width:100%">
           <span class="note" id="kxNote"></span></div>
-        <div class="row"><span>Kalshi asks:</span>
-          <label for="askUp">Up &cent;</label><input type="number" id="askUp" min="1" max="99" step="1" placeholder="--" inputmode="numeric">
-          <label for="askDn">Down &cent;</label><input type="number" id="askDn" min="1" max="99" step="1" placeholder="--" inputmode="numeric"></div>
-        <div class="scroll">
-          <table>
-            <thead><tr><th>Side</th><th class="r">Ask</th><th class="r">Model</th><th class="r">Edge after fee</th></tr></thead>
-            <tbody>
-              <tr><td>Up</td><td class="num" id="upAsk">--</td><td class="num" id="upFair">--</td><td class="num" id="upEdge">--</td></tr>
-              <tr><td>Down</td><td class="num" id="dnAsk">--</td><td class="num" id="dnFair">--</td><td class="num" id="dnEdge">--</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <p class="note">Kalshi's order book and perp need an API path with cross-origin access, which Kalshi's public API does not send; a one-file proxy in the repository (kalshi-proxy.js) adds it. Fee: 0.07 &times; p &times; (1 &minus; p) per contract, rounded up to the cent.</p>
+        <div hidden><input type="number" id="askUp"><input type="number" id="askDn"><span id="upAsk"></span><span id="upFair"></span><span id="upEdge"></span><span id="dnAsk"></span><span id="dnFair"></span><span id="dnEdge"></span></div>
+        <p class="note">Kalshi's API sends no cross-origin header, so the perp and index come through a one-file proxy you host (kalshi-proxy.js in the repository). Fee: 0.07 &times; p &times; (1 &minus; p) per contract, rounded up to the cent.</p>
       </section>
 
       <section class="panel">
@@ -187,6 +176,10 @@ table.wide{min-width:560px}
         <div class="thrlab"><span id="thrLo">--</span><span>Target</span><span id="thrHi">--</span></div>
         <p class="note" id="thrWarn" hidden style="color:var(--warn);font-weight:600"></p>
         <p class="note" id="thrNote">The scale is twice the typical move left before settlement, so the ends mean about 2 sigma. When the orange dot sits away from the blue one, the Kalshi reference has not caught up yet.</p>
+        <div class="thrlead" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line)">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:6px"><h3>Lead measured live</h3><span class="note" id="llN"></span></div>
+          <div id="llBody"><div class="empty">Collecting. The table fills in after about 2 minutes and settles after 10 to 15.</div></div>
+        </div>
       </section>
 
       <section class="panel">
@@ -272,10 +265,6 @@ table.wide{min-width:560px}
         <div id="trBody"><div class="empty">Each window's next-round call is saved twice: provisional at 5 minutes before the open, and firm at the open. It is scored when that window settles, about 90 seconds after its close. 96 windows a day; the intervals need about 30. Kept in this browser.</div></div>
       </section>
 
-      <section class="panel">
-        <header><h2>Lead measured live</h2><span class="note" id="llN"></span></header>
-        <div id="llBody"><div class="empty">Collecting. The table fills in after about 2 minutes and settles after 10 to 15.</div></div>
-      </section>
     </div>
   </div>
 
