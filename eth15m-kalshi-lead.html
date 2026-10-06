@@ -82,6 +82,7 @@ dl{margin:0}
 .legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--muted)}
 .legend span:before{content:"";display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle;background:var(--c)}
 canvas{display:block;width:100%;height:230px}
+canvas.short{height:150px}
 select,input[type=number]{font:500 14px var(--mono);color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:5px 8px}
 input[type=number]{width:96px}
 select{font-family:var(--sans)}
@@ -163,6 +164,12 @@ table.wide{min-width:560px}
         </div>
         <div class="thrlab"><span id="thrLo">--</span><span>Target</span><span id="thrHi">--</span></div>
         <p class="note" id="thrNote">The scale is twice the typical move left before settlement, so the ends mean about 2 sigma. When the orange dot sits away from the blue one, the Kalshi reference has not caught up yet.</p>
+      </section>
+
+      <section class="panel">
+        <header><h2>Volume, last 30 minutes</h2><span class="note" id="volNote">Coinbase ETH-USD, per minute</span></header>
+        <canvas id="cvVol" class="short" role="img" aria-label="Coinbase ETH-USD volume per minute for the last 30 minutes against the usual level"></canvas>
+        <div class="legend"><span style="--c:var(--accent)">Minutes in this window</span><span style="--c:var(--line)">Earlier</span><span style="--c:var(--muted)">Usual minute (median of the last 5 hours)</span></div>
       </section>
 
       <section class="panel">
@@ -300,7 +307,7 @@ function inFinal(T){ return ((T/1000) % 900) >= 840; }
 var S = {
   raw: new Map(), avg: new Map(), pubs: [], lastM: 0, lastPubRecv: 0, lastPoll: 0, polling: false,
   feeds: {okx: [], krf: [], cb: []}, fresh: {okx: 0, krf: 0, cb: 0, ref: 0},
-  candles1m: new Map(), cbCandles: new Map(), cbVol: new Map(), ewVar: null, win: null, model: null, stats: null, lastStats: 0, lastTick: 0, off: 0, offs: []
+  candles1m: new Map(), cbCandles: new Map(), cbVol: new Map(), volLive: new Map(), ewVar: null, win: null, model: null, stats: null, lastStats: 0, lastTick: 0, off: 0, offs: []
 };
 function perpKey(){ return $("perpSel").value; }
 
@@ -338,7 +345,7 @@ function socket(name, url, sub, onm){
 function connectAll(){
   socket("okx", "wss://ws.okx.com:8443/ws/v5/public", [{op:"subscribe", args:[{channel:"bbo-tbt", instId:"ETH-USDT-SWAP"}]}], function(m){ var d = m.data && m.data[0]; if (d && d.bids && d.bids[0] && d.asks[0]) push("okx", +d.ts, (+d.bids[0][0] + +d.asks[0][0])/2); });
   socket("krf", "wss://futures.kraken.com/ws/v1", [{event:"subscribe", feed:"ticker", product_ids:["PF_ETHUSD"]}], function(m){ if (m.feed === "ticker" && m.bid && m.ask) push("krf", +m.time, (m.bid + m.ask)/2); });
-  socket("cb", "wss://ws-feed.exchange.coinbase.com", [{type:"subscribe", product_ids:["ETH-USD"], channels:["ticker"]}], function(m){ if (m.type === "ticker" && m.best_bid) { var ex = Date.parse(m.time); push("cb", ex, (+m.best_bid + +m.best_ask)/2); var d = Date.now() - ex; if (isFinite(d)) { S.offs.push(d); if (S.offs.length > 300) S.offs.shift(); S.off = Math.min.apply(null, S.offs); } } });
+  socket("cb", "wss://ws-feed.exchange.coinbase.com", [{type:"subscribe", product_ids:["ETH-USD"], channels:["ticker"]}], function(m){ if (m.type === "ticker" && m.best_bid) { var ex = Date.parse(m.time); push("cb", ex, (+m.best_bid + +m.best_ask)/2); if (m.last_size && isFinite(ex)) { var vm = Math.floor(ex/60000)*60000; S.volLive.set(vm, (S.volLive.get(vm) || 0) + +m.last_size); } var d = Date.now() - ex; if (isFinite(d)) { S.offs.push(d); if (S.offs.length > 300) S.offs.shift(); S.off = Math.min.apply(null, S.offs); } } });
 }
 function seedVol(){
   fetch(CBREST + "products/ETH-USD/candles?granularity=60").then(function(r){ return r.json(); }).then(function(rows){
@@ -392,7 +399,7 @@ function nextRound(Snow, m, t, win){
   var h1 = S.cbCandles.get(mi - 3660000), h = h1 ? Math.max(-3, Math.min(3, Math.log(Snow/h1)/(sigMin*Math.sqrt(60)))) : 0;
   var q1 = S.cbCandles.get(mi - 960000), q = q1 ? Math.max(-3, Math.min(3, Math.log(Snow/q1)/(sigMin*Math.sqrt(15)))) : 0;
   var eZ = 0.97*z0, eH = -0.095*h, eM = -0.04*q, p = Core.t4(eZ + eH + eM), up = p >= 0.5, ps = up ? p : 1-p;
-  var vNow = 0, vAll = [], k; for (k=1;k<=15;k++){ var v = S.cbVol.get(mi - k*60000); if (v != null) vNow += v; }
+  var vNow = 0, vAll = [], k; for (k=1;k<=15;k++){ var v = S.cbVol.get(mi - k*60000); if (v == null) v = S.volLive.get(mi - k*60000); if (v != null) vNow += v; }
   S.cbVol.forEach(function(v, T){ if (T < mi - 900000) vAll.push(v); }); vAll.sort(function(a,b){ return a-b; });
   var volRatio = vAll.length >= 60 ? vNow/15/vAll[Math.floor(vAll.length/2)] : null;
   var d0 = Math.log(Snow/Kn), sgn = up ? 1 : -1, zFor = (d0 + sgn*sigSec*Math.sqrt(300))/(sigSec*Math.sqrt(560)), zAg = (d0 - sgn*sigSec*Math.sqrt(300))/(sigSec*Math.sqrt(560));
@@ -513,6 +520,23 @@ function draw(){
   line(per, css["--perp"], 1.75); line(ref, css["--accent"], 2.25);
   if (ref.length) { var lp = ref[ref.length-1]; g.fillStyle = css["--accent"]; g.beginPath(); g.arc(X(lp[0]), Y(lp[1]), 3.5, 0, 6.2832); g.fill(); }
 }
+function drawVol(){
+  var cv = $("cvVol"), dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight; if (!w) return;
+  if (cv.width !== Math.round(w*dpr)) { cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr); }
+  var g = cv.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h); readCss();
+  var t = Date.now() - S.off, mi = Math.floor(t/60000)*60000, ws = S.win ? S.win.ws : mi, bars = [], all = [], i;
+  for (i=29;i>=0;i--){ var T = mi - i*60000, v = S.cbVol.get(T); if (v == null || i === 0) v = S.volLive.get(T) != null ? S.volLive.get(T) : v; bars.push([T, v == null ? 0 : v, i === 0]); }
+  S.cbVol.forEach(function(v){ all.push(v); }); all.sort(function(a,b){ return a-b; }); var med = all.length >= 30 ? all[Math.floor(all.length/2)] : null;
+  var hi = Math.max(med || 0, 1); bars.forEach(function(b){ if (b[1] > hi) hi = b[1]; }); hi *= 1.1;
+  var x0 = 44, x1 = w - 10, y0 = 8, y1 = h - 22, bw = (x1-x0)/30, Y = function(v){ return y1 - (y1-y0)*v/hi; };
+  g.font = "11px " + getComputedStyle(document.body).getPropertyValue("--mono"); g.fillStyle = css["--muted"]; g.textAlign = "right"; g.textBaseline = "middle";
+  g.fillText(hi.toFixed(0), x0-6, y0+4); g.fillText("0", x0-6, y1);
+  bars.forEach(function(b, k){ var x = x0 + k*bw + 1, hh = y1 - Y(b[1]); g.fillStyle = b[0] >= ws ? css["--accent"] : css["--line"]; if (b[2]) g.globalAlpha = 0.55; g.fillRect(x, y1 - hh, Math.max(1, bw-2), hh); g.globalAlpha = 1; });
+  if (med != null) { g.save(); g.strokeStyle = css["--muted"]; g.setLineDash([5,4]); g.lineWidth = 1.5; g.beginPath(); g.moveTo(x0, Y(med)+0.5); g.lineTo(x1, Y(med)+0.5); g.stroke(); g.restore(); }
+  g.fillStyle = css["--muted"]; g.textAlign = "center"; g.textBaseline = "top"; [30,20,10,0].forEach(function(mn){ g.fillText(mn ? "\u2212" + mn + "m" : "now", Math.min(x1-14, x0 + (30-mn)*bw + bw/2), y1+5); });
+  var cur = bars[bars.length-1][1], prev = bars[bars.length-2][1], into = ((t - mi)/60000);
+  setTxt("volNote", med == null ? "Coinbase ETH-USD, per minute" : "This minute so far " + cur.toFixed(1) + " ETH" + (into > 0.1 ? ", pace " + (cur/into/med).toFixed(1) + "\u00d7 usual" : "") + "; last full minute " + (prev/med).toFixed(1) + "\u00d7 usual");
+}
 function tick(){ S.lastTick = Date.now(); try { compute(); render(); } catch(e){ console.error(e); } if (Date.now() - S.lastStats > 5000) { S.lastStats = Date.now(); try { renderStats(measure()); } catch(e){ console.error(e); } } }
 
 /* ---------- demo feed (open with #demo) ---------- */
@@ -520,9 +544,9 @@ function startDemo(){
   $("demoChip").hidden = false; var rnd = function(){ var u = 0; for (var i=0;i<6;i++) u += Math.random(); return (u-3)/Math.sqrt(0.5); };
   var now = Date.now(), T0 = Math.floor(now/1000)*1000 - 1200000, px = 2707, path = [], i, sig = 5e-4/Math.sqrt(60);
   for (i=0;i<=1200;i++){ px *= Math.exp(sig*rnd()); path.push([T0 + i*1000, Math.round(px*100)/100]); }
-  S.ewVar = 25e-8; for (i=0;i<path.length;i+=60) { S.cbCandles.set(Math.floor(path[i][0]/60000)*60000, path[i][1]); S.cbVol.set(Math.floor(path[i][0]/60000)*60000, 20 + 30*Math.random()); }
+  S.ewVar = 25e-8; for (i=0;i<path.length;i+=60) { S.cbCandles.set(Math.floor(path[i][0]/60000)*60000, path[i][1]); } for (i=0;i<300;i++) S.cbVol.set(Math.floor(now/60000)*60000 - (i+1)*60000, 20 + 30*Math.random());
   var cur = px;
-  setInterval(function(){ cur *= Math.exp(sig*0.25*rnd()); var tt = Date.now(); push("okx", tt - S.off, cur*1.0004); push("krf", tt - S.off, cur); push("cb", tt - S.off, cur*0.99998); }, 250);
+  setInterval(function(){ cur *= Math.exp(sig*0.25*rnd()); var tt = Date.now(); push("okx", tt - S.off, cur*1.0004); push("krf", tt - S.off, cur); push("cb", tt - S.off, cur*0.99998); var vm = Math.floor(tt/60000)*60000; S.volLive.set(vm, (S.volLive.get(vm) || 0) + 0.15*Math.random()); }, 250);
   setInterval(function(){ var tt = Date.now() - S.off, Tend = Math.floor((tt - 1200)/1000)*1000; while (path[path.length-1][0] < Tend) { var last = path[path.length-1][0] + 1000; var p = atIdx(S.feeds.krf, 0, last, 5000) || path[path.length-1][1]; path.push([last, Math.round(p*100)/100]); }
     var tail = path.slice(-120), adj = [], ts = []; for (var k=60;k<120;k++){ var s = 0; for (var q=k-59;q<=k;q++) s += tail[q][1]; ts.push(s/60); adj.push(tail[k][1]); }
     var M = tail[119][0], c = {}; c["1M"] = []; for (var mm = Math.floor(path[0][0]/60000)*60000 + 60000; mm < M; mm += 60000){ var s2 = 0, n2 = 0; for (var q2=0;q2<path.length;q2++) if (path[q2][0] > mm && path[q2][0] <= mm + 60000){ s2 += path[q2][1]; n2++; } if (n2 === 60) c["1M"].push({open_ts_ms: mm, close: s2/60}); }
@@ -532,8 +556,8 @@ function startDemo(){
 /* ---------- boot ---------- */
 $("perpSel").addEventListener("change", function(){ S.lastStats = 0; });
 if (DEMO) startDemo(); else { connectAll(); seedVol(); setInterval(seedVol, 300000); }
-setInterval(poll, 1000); setInterval(tick, 250); setInterval(function(){ try { draw(); } catch(e){ console.error(e); } }, 1000);
-window.addEventListener("resize", draw);
+setInterval(poll, 1000); setInterval(tick, 250); setInterval(function(){ try { draw(); drawVol(); } catch(e){ console.error(e); } }, 1000);
+window.addEventListener("resize", function(){ draw(); drawVol(); });
 window.__app = S;
 })();
 </script>
