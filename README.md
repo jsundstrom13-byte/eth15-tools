@@ -26,3 +26,11 @@ The files hold no personal data or keys, but anyone with the address can open th
 ## Install on an iPad
 
 Open the address in Safari, tap Share, then Add to Home Screen. Do this on the launcher for one icon, or on each tool for its own icon (ETH Kalshi, ETH Poly). iPadOS pauses a page that is off screen or locked, so keep the tool visible and set Auto-Lock to Never while trading.
+
+## Kalshi perp and index feed (optional)
+
+Kalshi's API refuses browser pages, so the Kalshi feed needs a tiny proxy you host. `kalshi-proxy.js` is a Cloudflare Worker that forwards read-only GET requests and adds the cross-origin header:
+
+1. Sign in at dash.cloudflare.com (free), open Workers & Pages, create a Worker, paste `kalshi-proxy.js`, deploy.
+2. Copy the worker address (`https://<name>.<you>.workers.dev`) into the "Kalshi proxy" box on the Kalshi page. It is remembered in that browser.
+3. Pick "Kalshi ETH perp" in the perp feed list. The page then reads the perp's bid and ask and Kalshi's own index value once a second.

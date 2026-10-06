@@ -153,6 +153,28 @@ table.wide{min-width:560px}
           <div><dt>Distance</dt><dd><span id="zVal">--</span> <small>sigma</small></dd></div>
           <div><dt>Volatility</dt><dd><span id="volVal">--</span> <small>bp/min</small></dd></div>
         </dl>
+        <div class="row" style="border-top:1px solid var(--line);padding-top:12px"><label for="perpSel">Perp feed</label>
+          <select id="perpSel">
+            <option value="okx">OKX ETH-USDT perp (fastest)</option>
+            <option value="krf">Kraken ETH-USD perp</option>
+            <option value="cb">Coinbase ETH-USD spot</option>
+            <option value="kx">Kalshi ETH perp (needs your proxy)</option>
+          </select>
+          <label for="kxProxy">Kalshi proxy</label><input type="url" id="kxProxy" placeholder="https://…workers.dev" style="font:13px var(--mono);color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:5px 8px;width:220px;max-width:100%">
+          <span class="note" id="kxNote"></span></div>
+        <div class="row"><span>Kalshi asks:</span>
+          <label for="askUp">Up &cent;</label><input type="number" id="askUp" min="1" max="99" step="1" placeholder="--" inputmode="numeric">
+          <label for="askDn">Down &cent;</label><input type="number" id="askDn" min="1" max="99" step="1" placeholder="--" inputmode="numeric"></div>
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Side</th><th class="r">Ask</th><th class="r">Model</th><th class="r">Edge after fee</th></tr></thead>
+            <tbody>
+              <tr><td>Up</td><td class="num" id="upAsk">--</td><td class="num" id="upFair">--</td><td class="num" id="upEdge">--</td></tr>
+              <tr><td>Down</td><td class="num" id="dnAsk">--</td><td class="num" id="dnFair">--</td><td class="num" id="dnEdge">--</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">Kalshi's order book and perp need an API path with cross-origin access, which Kalshi's public API does not send; a one-file proxy in the repository (kalshi-proxy.js) adds it. Fee: 0.07 &times; p &times; (1 &minus; p) per contract, rounded up to the cent.</p>
       </section>
 
       <section class="panel">
@@ -163,6 +185,7 @@ table.wide{min-width:560px}
           <div class="mk perp" id="mkPerp" style="left:50%"><b></b></div>
         </div>
         <div class="thrlab"><span id="thrLo">--</span><span>Target</span><span id="thrHi">--</span></div>
+        <p class="note" id="thrWarn" hidden style="color:var(--warn);font-weight:600"></p>
         <p class="note" id="thrNote">The scale is twice the typical move left before settlement, so the ends mean about 2 sigma. When the orange dot sits away from the blue one, the Kalshi reference has not caught up yet.</p>
       </section>
 
@@ -180,35 +203,6 @@ table.wide{min-width:560px}
     </div>
 
     <div class="col">
-      <section class="panel">
-        <header><h2>Feeds</h2></header>
-        <div class="row"><label for="perpSel">Perp</label>
-          <select id="perpSel">
-            <option value="okx">OKX ETH-USDT perp (fastest)</option>
-            <option value="krf">Kraken ETH-USD perp</option>
-            <option value="cb">Coinbase ETH-USD spot</option>
-          </select></div>
-        <p class="note">Kalshi's own ETH perp can't be read from a web page: its API sends no cross-origin permission. The perps listed here track the same index to within 0.3 bp once the basis is removed.</p>
-      </section>
-
-      <section class="panel">
-        <header><h2>Market</h2><span class="note">Type the Kalshi asks</span></header>
-        <div class="row">
-          <label for="askUp">Up ask &cent;</label><input type="number" id="askUp" min="1" max="99" step="1" placeholder="--" inputmode="numeric">
-          <label for="askDn">Down ask &cent;</label><input type="number" id="askDn" min="1" max="99" step="1" placeholder="--" inputmode="numeric">
-        </div>
-        <div class="scroll">
-          <table>
-            <thead><tr><th>Side</th><th class="r">Ask</th><th class="r">Model</th><th class="r">Edge after fee</th></tr></thead>
-            <tbody>
-              <tr><td>Up</td><td class="num" id="upAsk">--</td><td class="num" id="upFair">--</td><td class="num" id="upEdge">--</td></tr>
-              <tr><td>Down</td><td class="num" id="dnAsk">--</td><td class="num" id="dnFair">--</td><td class="num" id="dnEdge">--</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <p class="note">Kalshi's order book needs an API key, so it can't be read here. Fee: 0.07 &times; p &times; (1 &minus; p) per contract, rounded up to the cent per order.</p>
-      </section>
-
       <section class="panel">
         <header><h2>This round</h2><span class="note" id="crWhen"></span></header>
         <div class="call" style="align-items:center">
@@ -328,7 +322,7 @@ function $(id){ return document.getElementById(id); }
 function inFinal(T){ return ((T/1000) % 900) >= 840; }
 var S = {
   raw: new Map(), avg: new Map(), pubs: [], lastM: 0, lastPubRecv: 0, lastPoll: 0, polling: false,
-  feeds: {okx: [], krf: [], cb: []}, fresh: {okx: 0, krf: 0, cb: 0, ref: 0},
+  feeds: {okx: [], krf: [], cb: [], kx: []}, fresh: {okx: 0, krf: 0, cb: 0, kx: 0, ref: 0}, kxRef: null, kxBusy: false,
   candles1m: new Map(), cbCandles: new Map(), cbVol: new Map(), volLive: new Map(), ewVar: null, log: [], lastSettleCheck: 0, win: null, model: null, stats: null, lastStats: 0, lastTick: 0, off: 0, offs: []
 };
 function perpKey(){ return $("perpSel").value; }
@@ -369,6 +363,16 @@ function connectAll(){
   socket("krf", "wss://futures.kraken.com/ws/v1", [{event:"subscribe", feed:"ticker", product_ids:["PF_ETHUSD"]}], function(m){ if (m.feed === "ticker" && m.bid && m.ask) push("krf", +m.time, (m.bid + m.ask)/2); });
   socket("cb", "wss://ws-feed.exchange.coinbase.com", [{type:"subscribe", product_ids:["ETH-USD"], channels:["ticker"]}], function(m){ if (m.type === "ticker" && m.best_bid) { var ex = Date.parse(m.time); push("cb", ex, (+m.best_bid + +m.best_ask)/2); if (m.last_size && isFinite(ex)) { var vm = Math.floor(ex/60000)*60000; S.volLive.set(vm, (S.volLive.get(vm) || 0) + +m.last_size); } var d = Date.now() - ex; if (isFinite(d)) { S.offs.push(d); if (S.offs.length > 300) S.offs.shift(); S.off = Math.min.apply(null, S.offs); } } });
 }
+// Kalshi perp through a proxy you host (see kalshi-proxy.js): GET <proxy>/trade-api/v2/margin/markets/KXETHPERP once a second.
+function pollKalshi(){
+  var base = ($("kxProxy").value || "").trim().replace(/\/+$/, ""); if (!base || S.kxBusy) { if (!base) setTxt("kxNote", ""); return; } S.kxBusy = true;
+  fetch(base + "/trade-api/v2/margin/markets/KXETHPERP", {cache: "no-store"}).then(function(r){ if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }).then(function(j){
+    var mk = j.market || j; var bid = +mk.bid, ask = +mk.ask, mult = 1000, mid = (bid + ask)/2*mult, ts = mk.reference_price && +mk.reference_price.ts_ms;
+    if (mid > 0) push("kx", Date.now() - S.off, mid);
+    if (mk.reference_price && +mk.reference_price.price > 0) S.kxRef = {v: +mk.reference_price.price*mult, ts: ts, recv: Date.now()};
+    setTxt("kxNote", "Kalshi perp " + fmt(mid) + (S.kxRef ? ", index " + fmt(S.kxRef.v) + " stamped " + ((Date.now() - S.off - S.kxRef.ts)/1000).toFixed(1) + " s ago" : ""));
+  }).catch(function(e){ setTxt("kxNote", "Proxy not answering: " + e.message); }).then(function(){ S.kxBusy = false; });
+}
 function seedVol(){
   fetch(CBREST + "products/ETH-USD/candles?granularity=60").then(function(r){ return r.json(); }).then(function(rows){
     if (!Array.isArray(rows)) return; rows.sort(function(a,b){ return a[0]-b[0]; }); var v = null;
@@ -398,7 +402,7 @@ function compute(){
   if (!S.win || S.win.ws !== ws) { var prevWin = S.win; S.win = {ws: ws, end: ws + WIN, K: null, series: []}; rollover(prevWin); }
   var win = S.win, st = strikeFor(ws); if (st) win.K = st.K;
   var M = S.lastM, R = M ? S.raw.get(M) : null, key = perpKey(), a = S.feeds[key];
-  var pNow = a.length ? a[a.length-1][2] : null, pFresh = Date.now() - S.fresh[key] < 5000, b = M ? basis(key, M) : null;
+  var pNow = a.length ? a[a.length-1][2] : null, pFresh = Date.now() - S.fresh[key] < (key === "kx" ? 4000 : 5000), b = M ? basis(key, M) : null;
   var g = R && pNow && pFresh && b != null ? Math.log(pNow/R) - b : null;
   var Snow = R ? R*Math.exp(BETA*(g || 0)) : null;
   var m = {M: M, R: R, g: g, Snow: Snow, perpAdj: pNow && b != null ? pNow*Math.exp(-b) : null, age: M ? (t - M)/1000 : null, b: b};
@@ -526,7 +530,7 @@ function render(){
   var win = S.win, m = S.model; if (!win || !m) return;
   var t = Date.now() - S.off, tau = (win.end - t)/1000; setTxt("tLeft", mmss(tau));
   setTxt("winLabel", "Kalshi ETH 15 min \u00b7 " + etRange(win.ws, win.end));
-  var names = {okx: "OKX perp", krf: "Kraken perp", cb: "Coinbase spot"};
+  var names = {okx: "OKX perp", krf: "Kraken perp", cb: "Coinbase spot", kx: "Kalshi perp"};
   chip("chipRef", "Kalshi reference", S.fresh.ref, 12000, m.age != null ? " · " + m.age.toFixed(1) + " s old" : " live");
   chip("chipPerp", names[perpKey()], S.fresh[perpKey()], 6000); chip("chipCb", "Coinbase", S.fresh.cb, 8000);
   setTxt("kVal", fmt(win.K)); setTxt("refVal", fmt(m.R)); setTxt("refAge", m.age != null ? m.age.toFixed(1) + " s old" : "");
@@ -543,7 +547,11 @@ function render(){
   renderCur(m.cur, tau); renderNext(m.next, tau);
   // throttle
   var span = Math.max(2, 2*m.sdAbs), pos = function(x){ return x == null ? 50 : Math.max(0, Math.min(100, 50 + 50*(x - win.K)/span)); };
-  $("mkRef").style.left = pos(m.R).toFixed(2) + "%"; $("mkPerp").style.left = pos(m.Snow).toFixed(2) + "%";
+  var refOld = m.age != null && m.age > 6, perpStale = Date.now() - S.fresh[perpKey()] > 4000, gapBp = m.g == null ? 0 : Math.abs(1e4*BETA*m.g);
+  var warn = refOld ? "Kalshi reference is " + m.age.toFixed(0) + " s old: the gap between ring and dot is stale, trust the dot only." : perpStale ? "Perp feed stalled: the dot is stale, trust the ring only." : "";
+  $("thrWarn").hidden = !warn; setTxt("thrWarn", warn);
+  $("mkRef").style.left = pos(m.R).toFixed(2) + "%"; $("mkPerp").style.left = pos(perpStale ? m.R : m.Snow).toFixed(2) + "%"; $("mkPerp").style.opacity = refOld || perpStale ? "0.45" : "1";
+  setTxt("thrNote", gapBp < 0.3 && !warn ? "Dot and ring agree: the Kalshi reference has caught up with the perp." : "The scale is twice the typical move left before settlement, so the ends mean about 2 sigma. When the orange dot sits away from the blue ring, the Kalshi reference has not caught up yet.");
   setTxt("thrLo", "−$" + span.toFixed(2)); setTxt("thrHi", "+$" + span.toFixed(2));
   // market
   var au = parseFloat($("askUp").value)/100, ad = parseFloat($("askDn").value)/100;
@@ -640,7 +648,9 @@ $("trCsv").addEventListener("click", csv);
 var armed = 0; $("trReset").addEventListener("click", function(){ var b = this; if (Date.now() - armed < 4000) { S.log = []; saveLog(); $("trBody").innerHTML = "<div class=\"empty\">Erased. New calls are saved from the next window on.</div>"; setTxt("trN", ""); b.textContent = "Erase"; armed = 0; } else { armed = Date.now(); b.textContent = "Click again to erase"; setTimeout(function(){ b.textContent = "Erase"; }, 4000); } });
 loadLog(); renderTrack();
 if (DEMO) { startDemo(); renderTrack(); } else { connectAll(); seedVol(); setInterval(seedVol, 300000); }
-setInterval(poll, 1000); setInterval(tick, 250); setInterval(function(){ try { draw(); drawVol(); } catch(e){ console.error(e); } }, 1000);
+setInterval(poll, 1000); setInterval(pollKalshi, 1000); setInterval(tick, 250);
+try { $("kxProxy").value = localStorage.getItem("eth15kl.proxy") || ""; } catch(e){}
+$("kxProxy").addEventListener("change", function(){ try { localStorage.setItem("eth15kl.proxy", this.value.trim()); } catch(e){} }); setInterval(function(){ try { draw(); drawVol(); } catch(e){ console.error(e); } }, 1000);
 window.addEventListener("resize", function(){ draw(); drawVol(); });
 window.__app = S;
 })();
