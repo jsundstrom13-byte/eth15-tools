@@ -223,10 +223,21 @@ table.wide{min-width:560px}
           <label for="posPx">at &cent;</label><input type="number" id="posPx" min="1" max="99" step="0.1" placeholder="--" style="width:72px" inputmode="decimal">
           <label for="posBid">bid now &cent;</label><input type="number" id="posBid" min="1" max="99" step="1" placeholder="--" style="width:64px" inputmode="numeric">
           <label for="posLoss">max loss %</label><input type="number" id="posLoss" min="5" max="100" step="5" value="50" style="width:64px" inputmode="numeric">
-          <button id="posClear" type="button" hidden>Sold / clear</button>
         </div>
+        <div class="row" id="posSellRow" hidden>
+          <button id="posSold" type="button" style="background:var(--up-soft);color:var(--up);border-color:var(--up)">Sold</button>
+          <label for="posSellPx">at &cent;</label><input type="number" id="posSellPx" min="1" max="99" step="1" placeholder="--" style="width:64px" inputmode="numeric">
+          <span class="note">logs the trade and clears the position</span>
+          <button id="posClear" type="button">Clear without logging</button>
+        </div>
+        <style>.verd{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 6px}.verd span{flex:1;min-width:80px;text-align:center;padding:8px 6px;border-radius:8px;background:var(--sunk);color:var(--muted);font-weight:600;font-size:14px;opacity:.55}.verd span.on{opacity:1;color:var(--surface)}.verd span.on.hold{background:var(--accent)}.verd span.on.sell{background:var(--up)}.verd span.on.cut{background:var(--down)}</style>
         <div id="posBody" class="empty">No position. Purchased records the called side at the buy price shown, 10 shares; edit the price or shares to match your fill.</div>
         <p class="note">Prices are for the called side. Buy is fair value less the fee and a 1&cent; margin. Sell and cut are the contract's fair value after a one-sigma ETH move for or against you over the next few minutes; the ETH levels are where that move lands. If a typed ask is at or under the buy price, the call says buy now.</p>
+      </section>
+
+      <section class="panel">
+        <header><h2>Trades</h2><span><span class="note" id="tlN"></span> <button id="tlCsv" type="button">Copy CSV</button> <button id="tlReset" type="button">Erase</button></span></header>
+        <div id="tlBody" class="empty">Sold trades land here, and a position still open at the close is logged at its settlement value (100&cent; or 0). Kept in this browser.</div>
       </section>
 
       <section class="panel">
@@ -332,7 +343,7 @@ function inFinal(T){ return ((T/1000) % 900) >= 840; }
 var S = {
   raw: new Map(), avg: new Map(), pubs: [], lastM: 0, lastPubRecv: 0, lastPoll: 0, polling: false,
   feeds: {okx: [], krf: [], cb: [], kx: []}, fresh: {okx: 0, krf: 0, cb: 0, kx: 0, ref: 0}, kxRef: null, kxBusy: false,
-  candles1m: new Map(), cbCandles: new Map(), cbVol: new Map(), volLive: new Map(), ewVar: null, log: [], lastSettleCheck: 0, pos: null, win: null, model: null, stats: null, lastStats: 0, lastTick: 0, off: 0, offs: []
+  candles1m: new Map(), cbCandles: new Map(), cbVol: new Map(), volLive: new Map(), ewVar: null, log: [], lastSettleCheck: 0, pos: null, trades: [], win: null, model: null, stats: null, lastStats: 0, lastTick: 0, off: 0, offs: []
 };
 function perpKey(){ return $("perpSel").value; }
 
@@ -553,7 +564,7 @@ function render(){
   setTxt("says", m.avgN != null
     ? "Settlement average is forming: " + m.avgN + " of 60 seconds are in. Projected result " + fmt(m.expFinal) + ", " + (gap >= 0 ? "above" : "below") + " the target by $" + Math.abs(gap).toFixed(2) + "; it can still move about ±$" + m.sdAbs.toFixed(2) + "."
     : "Perp-implied ETH is $" + Math.abs(gap).toFixed(2) + " " + (gap >= 0 ? "above" : "below") + " the target with " + mmss(tau) + " left. A typical move before settlement is ±$" + m.sdAbs.toFixed(2) + ", so the gap is " + Math.abs(m.z).toFixed(1) + " of those.");
-  renderCur(m.cur, tau); renderPos(m, tau); renderNext(m.next, tau);
+  renderCur(m.cur, tau); posSettle(); renderPos(m, tau); renderNext(m.next, tau);
   // throttle
   var span = Math.max(2, 2*m.sdAbs), pos = function(x){ return x == null ? 50 : Math.max(0, Math.min(100, 50 + 50*(x - win.K)/span)); };
   var refOld = m.age != null && m.age > 6, perpStale = Date.now() - S.fresh[perpKey()] > 4000, gapBp = m.g == null ? 0 : Math.abs(1e4*BETA*m.g);
@@ -584,30 +595,52 @@ function renderCur(c, tau){
   setTxt("crLast", mmss(c.lastExit) + " left"); setTxt("crEthFor", fmt(c.ethFor)); setTxt("crEthAg", fmt(c.ethAg));
 }
 function posSave(){ try { if (S.pos) localStorage.setItem("eth15kl.pos", JSON.stringify(S.pos)); else localStorage.removeItem("eth15kl.pos"); } catch(e){} }
-function posLoad(){ try { var j = JSON.parse(localStorage.getItem("eth15kl.pos") || "null"); if (j && j.ws && Date.now() - j.ws < WIN + 120000) S.pos = j; } catch(e){} }
+function posLoad(){ try { var j = JSON.parse(localStorage.getItem("eth15kl.pos") || "null"); if (j && j.ws && Date.now() - j.ws < WIN + 600000) S.pos = j; var t = JSON.parse(localStorage.getItem("eth15kl.trades") || "[]"); if (Array.isArray(t)) S.trades = t; } catch(e){} }
+function tradesSave(){ try { localStorage.setItem("eth15kl.trades", JSON.stringify(S.trades.slice(-500))); } catch(e){} }
 function posBuy(){ var c = S.model && S.model.cur, win = S.win; if (!c || !win || c.final) return; var px = parseFloat($("posPx").value), q = parseInt($("posQty").value, 10) || 10;
   if (!(px > 0 && px < 100)) { px = Math.round(1000*c.entry)/10; $("posPx").value = px; }
-  S.pos = {ws: win.ws, up: c.up, qty: q, px: px/100, t: Date.now() - S.off}; posSave(); }
-function posClear(){ S.pos = null; posSave(); $("posBody").className = "empty"; $("posBody").textContent = "No position. Purchased records the called side at the buy price shown, 10 shares; edit the price or shares to match your fill."; }
+  S.pos = {ws: win.ws, up: c.up, qty: q, px: px/100, t: Date.now() - S.off, K: win.K, pAtBuy: c.ps}; posSave(); $("posBid").value = ""; }
+function posReset(){ S.pos = null; posSave(); $("posBid").value = ""; $("posSellPx").value = ""; $("posBody").className = "empty"; $("posBody").textContent = "No position. Purchased records the called side at the buy price shown, 10 shares; edit the price or shares to match your fill."; }
+function logTrade(pos, sellPx, how, fAtSale){
+  var feeIn = Core.fee(pos.px), feeOut = how === "sold" ? Core.fee(sellPx) : 0, pl = pos.qty*(sellPx - pos.px - feeIn - feeOut);
+  S.trades.push({ws: pos.ws, up: pos.up, qty: pos.qty, buy: pos.px, sell: sellPx, how: how, pl: pl, tBuy: pos.t, tSell: Date.now() - S.off, fair: fAtSale == null ? null : fAtSale, pBuy: pos.pAtBuy == null ? null : pos.pAtBuy});
+  tradesSave(); renderTrades();
+}
+function posSold(){ var pos = S.pos, m = S.model; if (!pos) return; var px = parseFloat($("posSellPx").value); if (!(px > 0 && px < 100)) { var b = parseFloat($("posBid").value); if (b > 0 && b < 100) px = b; else return; }
+  var f = m && m.p != null && S.win && S.win.ws === pos.ws ? (pos.up ? m.p : 1 - m.p) : null; logTrade(pos, px/100, "sold", f); posReset(); }
+function posSettle(){ var pos = S.pos, win = S.win; if (!pos || !win || pos.ws === win.ws) return; var res = S.candles1m.get(pos.ws + 840000), K = pos.K != null ? pos.K : S.candles1m.get(pos.ws - 60000); if (res == null || K == null) return; var up = res > K; logTrade(pos, (pos.up === up) ? 1 : 0, "settled", null); posReset(); }
+function renderTrades(){
+  var tr = S.trades; setTxt("tlN", tr.length ? tr.length + " trade" + (tr.length === 1 ? "" : "s") : "");
+  if (!tr.length) { $("tlBody").className = "empty"; $("tlBody").textContent = "Sold trades land here, and a position still open at the close is logged at its settlement value (100¢ or 0). Kept in this browser."; return; }
+  var tot = 0, wins = 0, h = "<div class=\"scroll\"><table class=\"wide\"><thead><tr><th>Window (ET)</th><th>Side</th><th class=\"r\">Shares</th><th class=\"r\">Bought</th><th class=\"r\">Sold</th><th>How</th><th class=\"r\">Held</th><th class=\"r\">P&amp;L</th></tr></thead><tbody>";
+  tr.slice().reverse().forEach(function(t){ var held = Math.max(0, Math.round((t.tSell - t.tBuy)/1000)); h += "<tr><td>" + etRange(t.ws, t.ws + WIN).replace(" ET", "") + "</td><td>" + (t.up ? "Up" : "Down") + "</td><td class=\"num\">" + t.qty + "</td><td class=\"num\">" + pp(t.buy) + "</td><td class=\"num\">" + pp(t.sell) + "</td><td>" + (t.how === "sold" ? "sold" : "settled") + "</td><td class=\"num\">" + mmss(held) + "</td><td class=\"num " + (t.pl >= 0 ? "pos" : "neg") + "\">" + (t.pl >= 0 ? "+" : "−") + "$" + Math.abs(t.pl).toFixed(2) + "</td></tr>"; });
+  tr.forEach(function(t){ tot += t.pl; if (t.pl > 0) wins++; });
+  h += "</tbody></table></div><p class=\"note\" style=\"margin-top:8px\">Total " + (tot >= 0 ? "+" : "−") + "$" + Math.abs(tot).toFixed(2) + " over " + tr.length + " trade" + (tr.length === 1 ? "" : "s") + ", " + wins + " winning. P&amp;L is after Kalshi's fee on each buy and sell; settlement carries no fee.</p>";
+  $("tlBody").className = ""; $("tlBody").innerHTML = h;
+}
+function tradesCsv(){ var out = ["window_open_utc,window_et,side,shares,buy_cents,sell_cents,how,held_seconds,pnl_dollars,p_side_at_buy,fair_side_at_sale"];
+  S.trades.forEach(function(t){ out.push([new Date(t.ws).toISOString(), etRange(t.ws, t.ws + WIN).replace(/ /g, " "), t.up ? "Up" : "Down", t.qty, (100*t.buy).toFixed(1), (100*t.sell).toFixed(1), t.how, Math.max(0, Math.round((t.tSell - t.tBuy)/1000)), t.pl.toFixed(2), t.pBuy == null ? "" : t.pBuy.toFixed(3), t.fair == null ? "" : t.fair.toFixed(3)].join(",")); });
+  var txt = out.join("\n"); if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function(){ setTxt("tlCsv", "Copied"); setTimeout(function(){ setTxt("tlCsv", "Copy CSV"); }, 2000); }, function(){ setTxt("tlCsv", "Copy failed"); }); }
+function cents(x){ return Math.ceil(100*x - 1e-9) + "¢"; }
 function renderPos(m, tau){
-  var pos = S.pos, win = S.win; $("posClear").hidden = !pos; $("posBuy").hidden = !!pos;
+  var pos = S.pos, win = S.win; $("posSellRow").hidden = !pos; $("posBuy").hidden = !!pos;
   if (!pos || !win || !m || m.p == null) return;
-  if (pos.ws !== win.ws) { $("posBody").className = ""; $("posBody").innerHTML = "<p class=\"note\">Position from the " + etRange(pos.ws, pos.ws + WIN) + " window: " + pos.qty + " " + (pos.up ? "Up" : "Down") + " at " + pp(pos.px) + ". That window has closed; it settles at 100\u00a2 or 0. Clear it when done.</p>"; return; }
+  if (pos.ws !== win.ws) { $("posBody").className = ""; $("posBody").innerHTML = "<p class=\"note\">Your " + pos.qty + " " + (pos.up ? "Up" : "Down") + " from " + etRange(pos.ws, pos.ws + WIN) + " ran to the close. It will be logged at its settlement value as soon as Kalshi posts the result, usually within 2 minutes.</p>"; return; }
   var px = parseFloat($("posPx").value); if (px > 0 && px < 100) pos.px = px/100; var q = parseInt($("posQty").value, 10); if (q > 0) pos.qty = q;
   var f = pos.up ? m.p : 1 - m.p, bidIn = parseFloat($("posBid").value)/100, bid = bidIn > 0 && bidIn < 1 ? bidIn : null, lossPct = (parseFloat($("posLoss").value) || 50)/100;
   var feeIn = Core.fee(pos.px), cost = pos.qty*(pos.px + feeIn), hold = pos.qty*f, markPL = hold - cost;
-  var breakEven = f + Core.fee(f), sellVal = bid != null ? pos.qty*(bid - Core.fee(bid)) : null, sellPL = sellVal != null ? sellVal - cost : null;
-  var floorVal = cost*(1 - lossPct), floorPx = floorVal/pos.qty;
-  var r1 = Core.prob({expFinal: m.expFinal*(1 + 1/m.expFinal), strike: win.K, tau: m.tau <= 60 ? 0 : m.tau, sigMin: m.sigMin, h: 0, elapsed: (Date.now() - S.off - win.ws)/1000});
-  var delta = Math.abs(r1.p - m.p);
-  var verdict, cls = "";
-  if (m.avgN != null) { verdict = "Settlement is forming: the contract is heading to " + (f >= 0.5 ? "100\u00a2" : "0\u00a2") + ". Nothing left to decide."; cls = f >= 0.5 ? "pos" : "neg"; }
-  else if (bid != null && bid - Core.fee(bid) >= f) { verdict = "SELL NOW: the bid pays " + pp(bid) + ", at or above fair value after fee. Holding is worth " + pp(f) + "."; cls = "pos"; }
-  else if (f <= floorPx) { verdict = "CUT NOW (your max-loss rule): fair value " + pp(f) + " is at or under your floor of " + pp(floorPx) + ". By expectation holding is still worth " + pp(f) + " a share, so this is a risk choice."; cls = "neg"; }
-  else if (f >= 0.92 && tau > 60) { verdict = "LOCK IN if you can sell at " + pp(breakEven) + " or better; otherwise hold, with the last exit at 1:00 left. Every $1 of ETH moves fair value " + (100*delta).toFixed(1) + "\u00a2."; cls = "pos"; }
-  else if (tau <= 90) { verdict = "LAST CALL: sell before 1:00 left only if a bid of " + pp(breakEven) + " or better is there; after that hold to settlement."; cls = ""; }
-  else { verdict = "HOLD: sell only if a bid reaches " + pp(breakEven) + " (fair value plus fee). Cut if fair value falls to " + pp(floorPx) + ". Every $1 of ETH moves fair value " + (100*delta).toFixed(1) + "\u00a2."; cls = ""; }
-  $("posBody").className = ""; $("posBody").innerHTML = "<div class=\"kv\" style=\"border-top:0;padding-top:0\"><div><dt>Position</dt><dd>" + pos.qty + " " + (pos.up ? "Up" : "Down") + " at " + pp(pos.px) + "</dd></div><div><dt>Cost incl. fee</dt><dd>$" + cost.toFixed(2) + "</dd></div><div><dt>Fair value now</dt><dd>" + pp(f) + " <small>$" + hold.toFixed(2) + "</small></dd></div><div><dt>Mark P&amp;L</dt><dd class=\"" + (markPL >= 0 ? "pos" : "neg") + "\">" + (markPL >= 0 ? "+" : "\u2212") + "$" + Math.abs(markPL).toFixed(2) + "</dd></div><div><dt>Sell-worth bid</dt><dd>" + pp(breakEven) + "</dd></div><div><dt>" + (bid != null ? "Cash out at bid" : "Cut floor") + "</dt><dd" + (sellPL != null ? " class=\"" + (sellPL >= 0 ? "pos" : "neg") + "\"" : "") + ">" + (sellPL != null ? (sellPL >= 0 ? "+" : "\u2212") + "$" + Math.abs(sellPL).toFixed(2) : pp(floorPx)) + "</dd></div></div><p style=\"margin-top:10px;font-weight:600\" class=\"" + cls + "\">" + verdict + "</p>";
+  var sellAt = f + Core.fee(f), sellVal = bid != null ? pos.qty*(bid - Core.fee(bid)) : null, sellPL = sellVal != null ? sellVal - cost : null;
+  var floorPx = cost*(1 - lossPct)/pos.qty;
+  if (document.activeElement !== $("posSellPx")) $("posSellPx").value = bid != null ? Math.round(100*bid) : Math.ceil(100*sellAt - 1e-9);
+  var state, line;
+  if (m.avgN != null) { state = f >= 0.5 ? "sell" : "cut"; line = "Settling: your contract is going to " + (f >= 0.5 ? "100¢. Nothing to do; it pays out." : "0¢. Nothing left to sell."); state = "hold"; }
+  else if (bid != null && bid - Core.fee(bid) >= f) { state = "sell"; line = "Sell now at " + cents(bid) + ". The bid pays more than the contract is worth (" + cents(f) + ")."; }
+  else if (f <= floorPx) { state = "cut"; line = "Cut now. Worth " + cents(f) + ", under your " + Math.round(100*lossPct) + "% loss floor of " + cents(floorPx) + ". Take the best bid you see."; }
+  else if (f >= 0.92 && tau > 60) { state = "hold"; line = "Nearly won. Hold, or sell if someone bids " + cents(sellAt) + " or more. Last exit at 1:00 left."; }
+  else if (tau <= 90) { state = "hold"; line = "Last call. Sell only for " + cents(sellAt) + " or more; otherwise hold to settlement."; }
+  else { state = "hold"; line = "Hold. Sell if offered " + cents(sellAt) + " or more. Cut if it drops to " + cents(floorPx) + "."; }
+  var verd = "<div class=\"verd\"><span class=\"hold" + (state === "hold" ? " on" : "") + "\">Hold</span><span class=\"sell" + (state === "sell" ? " on" : "") + "\">Sell</span><span class=\"cut" + (state === "cut" ? " on" : "") + "\">Cut</span></div>";
+  $("posBody").className = ""; $("posBody").innerHTML = "<div class=\"kv\" style=\"border-top:0;padding-top:0\"><div><dt>You hold</dt><dd>" + pos.qty + " " + (pos.up ? "Up" : "Down") + " at " + pp(pos.px) + "</dd></div><div><dt>Worth now</dt><dd>" + cents(f) + " <small>$" + hold.toFixed(2) + "</small></dd></div><div><dt>Gain so far</dt><dd class=\"" + (markPL >= 0 ? "pos" : "neg") + "\">" + (markPL >= 0 ? "+" : "−") + "$" + Math.abs(markPL).toFixed(2) + "</dd></div><div><dt>Sell if offered</dt><dd>" + cents(sellAt) + " <small>or more</small></dd></div><div><dt>Cut if it drops to</dt><dd>" + cents(floorPx) + "</dd></div><div><dt>" + (bid != null ? "If you sell at the bid" : "Bid now") + "</dt><dd" + (sellPL != null ? " class=\"" + (sellPL >= 0 ? "pos" : "neg") + "\"" : "") + ">" + (sellPL != null ? (sellPL >= 0 ? "+" : "−") + "$" + Math.abs(sellPL).toFixed(2) : "type it above") + "</dd></div></div>" + verd + "<p style=\"font-weight:600\">" + line + "</p>";
 }
 function renderNext(n, tau){
   if (!n) return; var side = n.up ? "Up" : "Down";
@@ -681,7 +714,9 @@ function startDemo(){
 /* ---------- boot ---------- */
 $("perpSel").addEventListener("change", function(){ S.lastStats = 0; });
 $("trCsv").addEventListener("click", csv);
-$("posBuy").addEventListener("click", posBuy); $("posClear").addEventListener("click", posClear); posLoad();
+$("posBuy").addEventListener("click", posBuy); $("posClear").addEventListener("click", posReset); $("posSold").addEventListener("click", posSold); $("tlCsv").addEventListener("click", tradesCsv);
+var armedT = 0; $("tlReset").addEventListener("click", function(){ var b = this; if (Date.now() - armedT < 4000) { S.trades = []; tradesSave(); renderTrades(); b.textContent = "Erase"; armedT = 0; } else { armedT = Date.now(); b.textContent = "Click again to erase"; setTimeout(function(){ b.textContent = "Erase"; }, 4000); } });
+posLoad(); renderTrades();
 var armed = 0; $("trReset").addEventListener("click", function(){ var b = this; if (Date.now() - armed < 4000) { S.log = []; saveLog(); $("trBody").innerHTML = "<div class=\"empty\">Erased. New calls are saved from the next window on.</div>"; setTxt("trN", ""); b.textContent = "Erase"; armed = 0; } else { armed = Date.now(); b.textContent = "Click again to erase"; setTimeout(function(){ b.textContent = "Erase"; }, 4000); } });
 loadLog(); renderTrack();
 if (DEMO) { startDemo(); renderTrack(); } else { connectAll(); seedVol(); setInterval(seedVol, 300000); }
