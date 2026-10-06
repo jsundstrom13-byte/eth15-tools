@@ -177,8 +177,12 @@ table.wide{min-width:560px}
         <p class="note" id="thrWarn" hidden style="color:var(--warn);font-weight:600"></p>
         <p class="note" id="thrNote">The scale is twice the typical move left before settlement, so the ends mean about 2 sigma. When the orange dot sits away from the blue one, the Kalshi reference has not caught up yet.</p>
         <div class="thrlead" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line)">
-          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:6px"><h3>Lead measured live</h3><span class="note" id="llN"></span></div>
+          <style>.leadbig{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:2px 0 8px}.leadbig b{font:600 30px/1 var(--mono);font-variant-numeric:tabular-nums;color:var(--perp)}.leadbig small{font-size:12px;color:var(--muted)}details.ll summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0;user-select:none}details.ll summary::-webkit-details-marker{display:none}details.ll summary h3{font-size:14px}details.ll .arr{width:0;height:0;border:6px solid transparent;border-left:9px solid var(--muted);border-right:0;transition:transform .2s;flex:none}details.ll[open] .arr{transform:rotate(90deg)}details.ll summary .note{margin-left:auto}</style>
+          <div class="plabel">Dot runs ahead of the ring by</div>
+          <div class="leadbig"><b id="llAhead">--</b><small id="llAheadSub">collecting, about 2 minutes</small></div>
+          <details class="ll" id="llDet"><summary><span class="arr"></span><h3>Lead measured live</h3><span class="note" id="llN"></span></summary>
           <div id="llBody"><div class="empty">Collecting. The table fills in after about 2 minutes and settles after 10 to 15.</div></div>
+          </details>
         </div>
       </section>
 
@@ -530,8 +534,12 @@ function measure(){
 function renderStats(o){
   var span = S.pubs.length ? (S.pubs[S.pubs.length-1][0] - S.pubs[0][0])/60000 : 0;
   setTxt("llN", o.n + " publications, " + span.toFixed(0) + " min");
-  if (!o.rows.length) return;
   var best = null; o.rows.forEach(function(r){ if (!best || r[1].r2 > best[1].r2) best = r; });
+  // Headline: publishing delay (median reference age) plus any true lead, read off the peak of the event-time cross-correlation.
+  if (o.age) { var pk = 0, pc = -2; o.x.forEach(function(x){ if (x[0] >= 0 && x[1] != null && x[1] > pc) { pc = x[1]; pk = x[0]; } });
+    var ahead = o.age[1]/1000 + pk; setTxt("llAhead", ahead.toFixed(1) + " s");
+    setTxt("llAheadSub", "delay " + (o.age[1]/1000).toFixed(1) + " s" + (pk > 0 ? " + " + pk + " s true lead" : ", true lead under 1 s") + (best ? " \u00b7 best forecast +" + best[0] + " s, R\u00b2 " + best[1].r2.toFixed(2) : "")); }
+  if (!o.rows.length) return;
   var h = "<div class=\"scroll\"><table><thead><tr><th>Seconds ahead</th><th class=\"r\">Direction right</th><th class=\"r\">R²</th><th class=\"r\">β</th><th class=\"r\">t</th></tr></thead><tbody>";
   o.rows.forEach(function(r){ var f = r[1], w = Core.wilson(f.hit, f.m); h += "<tr" + (r === best ? " class=\"hl\"" : "") + "><td>+" + r[0] + " s</td><td class=\"num\">" + (f.m ? (100*f.hit/f.m).toFixed(0) + "% <span class=\"note\">" + (100*w[0]).toFixed(0) + " to " + (100*w[1]).toFixed(0) + "</span>" : "--") + "</td><td class=\"num\">" + f.r2.toFixed(2) + "</td><td class=\"num\">" + f.b.toFixed(2) + "</td><td class=\"num\">" + f.t.toFixed(1) + "</td></tr>"; });
   if (o.beyond) h += "<tr><td>+4 to +10 s</td><td class=\"num\">" + (o.beyond.m ? (100*o.beyond.hit/o.beyond.m).toFixed(0) + "%" : "--") + "</td><td class=\"num\">" + o.beyond.r2.toFixed(2) + "</td><td class=\"num\">" + o.beyond.b.toFixed(2) + "</td><td class=\"num\">" + o.beyond.t.toFixed(1) + "</td></tr>";
@@ -744,6 +752,7 @@ function startDemo(){
 /* ---------- boot ---------- */
 $("perpSel").addEventListener("change", function(){ S.lastStats = 0; });
 $("trCsv").addEventListener("click", csv);
+try { if (localStorage.getItem("eth15kl.llOpen") === "1") $("llDet").open = true; } catch(e){} $("llDet").addEventListener("toggle", function(){ try { localStorage.setItem("eth15kl.llOpen", $("llDet").open ? "1" : "0"); } catch(e){} });
 $("posBuy").addEventListener("click", posBuy); $("posAdd").addEventListener("click", posAdd); $("addLots").addEventListener("click", function(ev){ var b = ev.target.closest && ev.target.closest(".lotx"); if (b) posDropLot(parseInt(b.getAttribute("data-i"), 10)); }); $("posClear").addEventListener("click", posReset); $("posSold").addEventListener("click", posSold); $("tlCsv").addEventListener("click", tradesCsv);
 var armedT = 0; $("tlReset").addEventListener("click", function(){ var b = this; if (Date.now() - armedT < 4000) { S.trades = []; tradesSave(); renderTrades(); b.textContent = "Erase"; armedT = 0; } else { armedT = Date.now(); b.textContent = "Click again to erase"; setTimeout(function(){ b.textContent = "Erase"; }, 4000); } });
 posLoad(); renderTrades();
