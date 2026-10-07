@@ -3,6 +3,7 @@
 Two single-file web apps for the 15-minute Ethereum Up/Down markets:
 
 - `eth15m-kalshi-lead.html` (Kalshi): settlement probability, target throttle, perp lead measured live.
+- `xrp15m-kalshi-lead.html`, `sol15m-kalshi-lead.html`, `btc15m-kalshi-lead.html`: the same Kalshi engine for XRP, SOL and BTC (CF Benchmarks index, 60-second settlement average, OKX / Kraken / Coinbase feeds). These are generated from the ETH file by `python3 build-assets.py`; edit the ETH file, run the script, commit all four.
 - `eth15m-fair-value.html` (Polymarket): probability against the order book, live scorecard.
 - `index.html`: launcher page that links to both.
 
