@@ -179,7 +179,7 @@ table.wide{min-width:560px}
       </section>
 
       <section class="panel">
-        <header><h2>Distance to target, in sigma</h2><span class="note" id="zNote">value, slope and where it is heading</span></header>
+        <header><h2>Distance to target, in sigma</h2><div class="legend"><span style="--c:var(--perp)">Perp-implied (ahead)</span><span style="--c:var(--accent)">Kalshi reference</span><span style="--c:var(--ink)">Nowcast used for the odds</span></div></header>
         <style>.zstate{margin:6px 0;padding:8px 10px;border-radius:8px;font-weight:600;font-size:14px;line-height:1.35;border-left:5px solid transparent}.zstate.hold{background:var(--sunk);color:var(--muted);border-color:var(--line)}.zstate.up{background:var(--up-soft);color:var(--up);border-color:var(--up)}.zstate.down{background:var(--down-soft);color:var(--down);border-color:var(--down)}.zstate.flip{background:var(--warn-soft);color:var(--warn);border-color:var(--warn)}.zstate.flipped{background:var(--down-soft);color:var(--down);border-color:var(--down)}.zstate b{font-family:var(--mono)}.cvwrap{position:relative}.pbadge{position:absolute;top:4px;left:46px;text-align:left;padding:3px 7px;border-radius:6px;font:600 11px/1.2 var(--sans);background:var(--sunk);color:var(--muted);opacity:.95}.pbadge b{display:block;font:700 15px/1.1 var(--mono);font-variant-numeric:tabular-nums}.pbadge small{display:block;font:500 10px/1.25 var(--mono);font-variant-numeric:tabular-nums}.pbadge.up{background:var(--up-soft);color:var(--up)}.pbadge.down{background:var(--down-soft);color:var(--down)}</style>
         <div class="cvwrap"><canvas id="cvZ1" class="short" role="img" aria-label="Distance to the target in sigma across the whole window"></canvas><div class="pbadge" id="pb1"><b>--</b><small>now</small></div></div>
         <div id="zA1"></div>
@@ -188,7 +188,7 @@ table.wide{min-width:560px}
         <div class="cvwrap"><canvas id="cvZ2" class="short" role="img" aria-label="Distance to the target in sigma over the last three minutes with a projection to the close"></canvas><div class="pbadge" id="pb2"><b>--</b><small>at the close</small></div></div>
         <div id="zA2"></div>
         <dl class="kv" style="border-top:0;padding-top:4px"><div><dt>Slope, last 45 s</dt><dd><span id="z2s">--</span> <small>sigma/min</small></dd></div><div><dt>Projected at close</dt><dd><span id="z2e">--</span></dd></div><div><dt>Crosses target</dt><dd><span id="z2x">--</span></dd></div></dl>
-        <p class="note">Sigma is the gap between the perp-implied index and the target divided by the typical move left before settlement, so it drifts outward on its own as time runs out; a falling line means the index is moving toward the target faster than that. The slope is fitted to the gap itself and converted with the current sigma. The state line is green while Up holds, red while Down holds, amber for Flip when the fitted pace crosses the target before the close, and red Flipped for two minutes after a crossing.</p>
+        <p class="note">Three readings of the same gap in sigma: the perp-implied index (orange, basis-adjusted, runs ahead of the reference by the publishing delay), the Kalshi reference as published (blue), and the nowcast that drives the odds, slope and state (thin dark line: the reference moved 90% of the way to the perp). Sigma is the gap divided by the typical move left before settlement, so it drifts outward on its own as time runs out; a falling line means the index is moving toward the target faster than that. The slope is fitted to the gap itself and converted with the current sigma. The state line is green while Up holds, red while Down holds, amber for Flip when the fitted pace crosses the target before the close, and red Flipped for two minutes after a crossing.</p>
       </section>
 
       <section class="panel">
@@ -469,7 +469,7 @@ function compute(){
     var h1 = S.cbCandles.get(mi - 3660000), h = h1 ? Math.log(Snow/h1)/(sigMin*Math.sqrt(60)) : 0;
     var r = Core.prob({expFinal: expFinal, strike: win.K, tau: tauEff, sigMin: sigMin, h: h, elapsed: elapsed});
     m.p = r.p; m.z = r.z; m.sdAbs = Snow*r.sd; m.sigMin = sigMin; m.expFinal = expFinal; m.tau = tau;
-    var sec = Math.floor(t/1000)*1000; if (!win.series.length || win.series[win.series.length-1][0] !== sec) win.series.push([sec, r.p, r.z, Math.log(expFinal/win.K), r.sd, tau]);
+    var sec = Math.floor(t/1000)*1000; if (!win.series.length || win.series[win.series.length-1][0] !== sec) win.series.push([sec, r.p, r.z, Math.log(expFinal/win.K), r.sd, tau, r.sd > 1e-12 ? Math.log(R/win.K)/r.sd : null, r.sd > 1e-12 && m.perpAdj ? Math.log(m.perpAdj/win.K)/r.sd : null]);
   }
   if (m.p != null) m.cur = currentRound(m, win, t);
   if (Snow) { m.next = nextRound(Snow, m, t, win); var tl = (win.end - t)/1000; if (m.next.firm) win.callFirm = snap(m.next, t); if (tl <= 300 && tl > 294 && !win.callProv) win.callProv = snap(m.next, t); }
@@ -886,9 +886,10 @@ function drawZ(){
     g.textAlign = "center"; g.textBaseline = "top"; g.fillStyle = css["--muted"];
     if (c[0] === "cvZ1") { for (var mnt = 0; mnt <= 15; mnt += 3) g.fillText(mnt + "m", X(win.ws + mnt*60000), y1+6); } else { g.fillText("−3m", X(t - 180000)+14, y1+6); g.fillText("now", X(t), y1+6); g.fillText("close", xe-16, y1+6); }
     if (c[0] === "cvZ2") { var xn = Math.round(X(t))+0.5; g.strokeStyle = css["--muted"]; g.setLineDash([3,3]); g.beginPath(); g.moveTo(xn, y0); g.lineTo(xn, y1); g.stroke(); g.setLineDash([]); }
-    if (pts.length > 1) { g.strokeStyle = css["--accent"]; g.lineWidth = 2; g.beginPath(); pts.forEach(function(r, i){ var xx = X(r[0]), yy = Y(r[2]); if (i) g.lineTo(xx, yy); else g.moveTo(xx, yy); }); g.stroke(); }
+    var lineAt = function(idx, color, wd, alpha){ var on = false; g.strokeStyle = color; g.lineWidth = wd; g.globalAlpha = alpha; g.beginPath(); pts.forEach(function(r){ var v = r[idx]; if (v == null) { on = false; return; } var xx = X(r[0]), yy = Y(v); if (on) g.lineTo(xx, yy); else g.moveTo(xx, yy); on = true; }); g.stroke(); g.globalAlpha = 1; };
+    if (pts.length > 1) { lineAt(6, css["--accent"], 2, 0.9); lineAt(7, css["--perp"], 2, 0.9); lineAt(2, css["--ink"], 1, 0.6); }
     if (c[3] && tau > 0) { g.strokeStyle = css["--perp"]; g.lineWidth = 2; g.setLineDash([5,4]); g.beginPath(); var steps = 40; for (var k = 0; k <= steps; k++) { var dt = tau*k/steps, gp = gap + c[3].slope*dt/60, sdp = Core.sdRel(Math.max(0, tau - dt), m.sigMin/Math.sqrt(60)); var zp = sdp > 1e-9 ? gp/sdp : (gp >= 0 ? zmax : -zmax); var xx = X(t + dt*1000), yy = Y(zp); if (k) g.lineTo(xx, yy); else g.moveTo(xx, yy); } g.stroke(); g.setLineDash([]); }
-    g.fillStyle = css["--accent"]; g.beginPath(); g.arc(X(t), Y(z), 4, 0, 2*Math.PI); g.fill();
+    g.fillStyle = css["--ink"]; g.beginPath(); g.arc(X(t), Y(z), 3.5, 0, 2*Math.PI); g.fill(); if (last[7] != null) { g.fillStyle = css["--perp"]; g.beginPath(); g.arc(X(t), Y(last[7]), 3.5, 0, 2*Math.PI); g.fill(); }
   });
 }
 // Flip map: side of the target second by second for the current window and the three before it, with crossings that hold for 5 s.
