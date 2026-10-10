@@ -36,8 +36,9 @@ def candles(series, ticker, open_ts, close_ts):
     out = []
     for c in j.get("candlesticks", []):
         p, yb, ya = c.get("price", {}), c.get("yes_bid", {}), c.get("yes_ask", {})
-        out.append({"t": c.get("end_period_ts"), "o": p.get("open"), "c": p.get("close"), "h": p.get("high"), "l": p.get("low"),
-                    "bid": yb.get("close"), "ask": ya.get("close"), "v": c.get("volume"), "oi": c.get("open_interest")})
+        f = lambda d, k: (None if d.get(k + "_dollars") is None else float(d[k + "_dollars"]))
+        out.append({"t": c.get("end_period_ts"), "o": f(p, "open"), "c": f(p, "close"), "h": f(p, "high"), "l": f(p, "low"), "mean": f(p, "mean"),
+                    "bid": f(yb, "close"), "ask": f(ya, "close"), "v": float(c.get("volume_fp") or 0), "oi": float(c.get("open_interest_fp") or 0)})
     return out
 
 
@@ -49,8 +50,8 @@ def trades(ticker, max_pages=6):
             params["cursor"] = cursor
         j = get("/markets/trades", **params)
         for t in j.get("trades", []):
-            rows.append({"t": iso_to_ts(t["created_time"][:19] + "Z") if "created_time" in t else None, "p": t.get("yes_price"),
-                         "n": t.get("count"), "s": t.get("taker_side")})
+            rows.append({"t": iso_to_ts(t["created_time"][:19] + "Z") if "created_time" in t else None, "p": float(t["yes_price_dollars"]) if t.get("yes_price_dollars") else None,
+                         "n": float(t["count_fp"]) if t.get("count_fp") else None, "s": t.get("taker_side")})
         cursor = j.get("cursor")
         if not cursor:
             break
@@ -82,6 +83,8 @@ def main():
         added = 0
         for i, m in enumerate(mk):
             tk = m["ticker"]
+            if tk in have and have[tk].get("candles") and not any(c.get("c") is not None for c in have[tk]["candles"]):
+                del have[tk]  # collected before the field names were fixed
             if tk in have and (have[tk].get("trades") is not None or i >= a.trades):
                 continue
             open_ts, close_ts = iso_to_ts(m["open_time"][:19] + "Z"), iso_to_ts(m["close_time"][:19] + "Z")
