@@ -168,7 +168,7 @@ table.wide{min-width:560px}
 
       <section class="panel">
         <header><h2>Distance to target, in sigma</h2><span class="note" id="zNote">value, slope and where it is heading</span></header>
-        <style>.cvwrap{position:relative}.pbadge{position:absolute;top:4px;left:46px;text-align:left;padding:3px 7px;border-radius:6px;font:600 11px/1.2 var(--sans);background:var(--sunk);color:var(--muted);opacity:.95}.pbadge b{display:block;font:700 15px/1.1 var(--mono);font-variant-numeric:tabular-nums}.pbadge small{display:block;font:500 10px/1.25 var(--mono);font-variant-numeric:tabular-nums}.pbadge.up{background:var(--up-soft);color:var(--up)}.pbadge.down{background:var(--down-soft);color:var(--down)}</style>
+        <style>.zstate{margin:6px 0;padding:8px 10px;border-radius:8px;font-weight:600;font-size:14px;line-height:1.35;border-left:5px solid transparent}.zstate.hold{background:var(--sunk);color:var(--muted);border-color:var(--line)}.zstate.up{background:var(--up-soft);color:var(--up);border-color:var(--up)}.zstate.down{background:var(--down-soft);color:var(--down);border-color:var(--down)}.zstate.flip{background:var(--warn-soft);color:var(--warn);border-color:var(--warn)}.zstate.flipped{background:var(--down-soft);color:var(--down);border-color:var(--down)}.zstate b{font-family:var(--mono)}.cvwrap{position:relative}.pbadge{position:absolute;top:4px;left:46px;text-align:left;padding:3px 7px;border-radius:6px;font:600 11px/1.2 var(--sans);background:var(--sunk);color:var(--muted);opacity:.95}.pbadge b{display:block;font:700 15px/1.1 var(--mono);font-variant-numeric:tabular-nums}.pbadge small{display:block;font:500 10px/1.25 var(--mono);font-variant-numeric:tabular-nums}.pbadge.up{background:var(--up-soft);color:var(--up)}.pbadge.down{background:var(--down-soft);color:var(--down)}</style>
         <div class="cvwrap"><canvas id="cvZ1" class="short" role="img" aria-label="Distance to the target in sigma across the whole window"></canvas><div class="pbadge" id="pb1"><b>--</b><small>now</small></div></div>
         <div id="zA1"></div>
         <dl class="kv" style="border-top:0;padding-top:4px"><div><dt>Now</dt><dd><span id="z1v">--</span> <small>sigma</small></dd></div><div><dt>Slope, last 3 min</dt><dd><span id="z1s">--</span> <small>sigma/min</small></dd></div><div><dt>Crosses target</dt><dd><span id="z1x">--</span></dd></div></dl>
@@ -176,7 +176,7 @@ table.wide{min-width:560px}
         <div class="cvwrap"><canvas id="cvZ2" class="short" role="img" aria-label="Distance to the target in sigma over the last three minutes with a projection to the close"></canvas><div class="pbadge" id="pb2"><b>--</b><small>at the close</small></div></div>
         <div id="zA2"></div>
         <dl class="kv" style="border-top:0;padding-top:4px"><div><dt>Slope, last 45 s</dt><dd><span id="z2s">--</span> <small>sigma/min</small></dd></div><div><dt>Projected at close</dt><dd><span id="z2e">--</span></dd></div><div><dt>Crosses target</dt><dd><span id="z2x">--</span></dd></div></dl>
-        <p class="note">Sigma is the gap between the perp-implied index and the target divided by the typical move left before settlement, so it drifts outward on its own as time runs out; a falling line means the index is moving toward the target faster than that. The slope is fitted to the gap itself and converted with the current sigma. The alarm fires when the fitted pace crosses the target before the close.</p>
+        <p class="note">Sigma is the gap between the perp-implied index and the target divided by the typical move left before settlement, so it drifts outward on its own as time runs out; a falling line means the index is moving toward the target faster than that. The slope is fitted to the gap itself and converted with the current sigma. The state line is green while Up holds, red while Down holds, amber for Flip when the fitted pace crosses the target before the close, and red Flipped for two minutes after a crossing.</p>
       </section>
 
       <section class="panel">
@@ -831,7 +831,7 @@ function draw(){
 function zFit(ser, W){ var n = ser.length; if (n < 8) return null; var t1 = ser[n-1][0], rows = []; for (var i = n-1; i >= 0 && t1 - ser[i][0] <= W*1000; i--) rows.push(ser[i]); if (rows.length < 6) return null;
   var mx = 0, my = 0; rows.forEach(function(r){ mx += r[0]; my += r[3]; }); mx /= rows.length; my /= rows.length; var sxy = 0, sxx = 0; rows.forEach(function(r){ sxy += (r[0]-mx)*(r[3]-my); sxx += (r[0]-mx)*(r[0]-mx); }); if (!(sxx > 0)) return null;
   return {slope: sxy/sxx*60000, n: rows.length, span: (t1 - rows[rows.length-1][0])/1000}; }
-function zAlarm(id, items){ var h = items.map(function(x){ return "<div class=\"swarn " + x[0] + "\" style=\"margin:6px 0\">" + x[1] + "</div>"; }).join(""); if ($(id).innerHTML !== h) $(id).innerHTML = h; }
+function zAlarm(id, items){ var h = items.map(function(x){ return "<div class=\"zstate " + x[0] + "\">" + x[1] + "</div>"; }).join(""); if ($(id).innerHTML !== h) $(id).innerHTML = h; }
 function drawZ(){
   var win = S.win, m = S.model; if (!win || !m || m.z == null) return; var ser = win.series; if (!ser.length) return;
   var last = ser[ser.length-1], z = last[2], gap = last[3], sd = last[4], tau = last[5], t = last[0];
@@ -841,14 +841,20 @@ function drawZ(){
   var x1 = cross(f1), x2 = cross(f2), endGap = f2 ? gap + f2.slope*tau/60 : null, zEnd = endGap != null ? endGap/sdNow : null;
   setTxt("z1v", sgn(z, 2)); setTxt("z1s", sl1 == null ? "--" : sgn(sl1, 2)); setTxt("z1x", x1 == null ? (f1 ? "not at this pace" : "--") : "in " + mmss(x1) + (x1 < tau ? " (before the close)" : " (after the close)"));
   setTxt("z2s", sl2 == null ? "--" : sgn(sl2, 2)); setTxt("z2e", zEnd == null ? "--" : sgn(zEnd, 1) + " sigma, " + (endGap >= 0 ? "Up" : "Down")); setTxt("z2x", x2 == null ? (f2 ? "not at this pace" : "--") : "in " + mmss(x2) + (x2 < tau ? " (before the close)" : " (after the close)"));
-  var a1 = [], a2 = [], side = gap >= 0 ? "Up" : "Down", other = gap >= 0 ? "Down" : "Up";
-  if (tau > 0) {
-    if (x1 != null && x1 < tau) a1.push([x1 < Math.min(120, tau/2) ? "urgent" : "warn", "Flip coming: closing on the target at " + Math.abs(sl1).toFixed(2) + " sigma/min; at this pace it crosses in " + mmss(x1) + ", before the close."]);
-    else if (Math.abs(z) < 0.5) a1.push(["warn", "Within half a sigma of the target: a coin flip either way."]);
-    if (zEnd != null && (endGap >= 0) !== (gap >= 0)) a2.push(["urgent", "Projected to end " + other + ": the last 45 s point " + sgn(zEnd, 1) + " sigma past the target by the close."]);
-    else if (zEnd != null && Math.abs(zEnd) < 0.5) a2.push(["warn", "Projected to end within half a sigma of the target (" + sgn(zEnd, 1) + "): too close to call."]);
-    else if (zEnd != null && sl2 != null && sl2*gap < 0 && Math.abs(sl2) > 0.5) a2.push(["warn", "Heading toward the target at " + Math.abs(sl2).toFixed(2) + " sigma/min, still projected " + side + " (" + sgn(zEnd, 1) + ") at the close."]);
-  }
+  // State line under each chart: Up or Down (holding), Flip (heading across the target), or Flipped (just crossed).
+  var side = gap >= 0 ? "Up" : "Down", other = gap >= 0 ? "Down" : "Up", a1 = [], a2 = [];
+  var wasSide = null; for (var q = ser.length - 1; q >= 0; q--) { if (t - ser[q][0] > 120000) { wasSide = ser[q][3] >= 0 ? "Up" : "Down"; break; } }
+  var flippedNow = wasSide && wasSide !== side;
+  if (tau <= 0) a1.push([side.toLowerCase(), "<b>" + side + "</b> \u00b7 settlement average forming"]);
+  else if (flippedNow) a1.push(["flipped", "<b>Flipped: " + wasSide + " \u2192 " + side + "</b> \u00b7 crossed the target in the last 2 minutes, now " + sgn(z, 2) + " sigma"]);
+  else if (x1 != null && x1 < tau) a1.push(["flip", "<b>Flip: " + side + " \u2192 " + other + "</b> \u00b7 closing at " + Math.abs(sl1).toFixed(2) + " sigma/min, crosses in " + mmss(x1) + " at this pace"]);
+  else if (Math.abs(z) < 0.5) a1.push(["flip", "<b>" + side + ", barely</b> \u00b7 within half a sigma of the target"]);
+  else a1.push([side.toLowerCase(), "<b>" + side + "</b> \u00b7 " + sgn(z, 2) + " sigma, " + (sl1 == null ? "pace not yet measured" : sl1*gap >= 0 ? "moving away from the target" : "drifting toward the target, no crossing at this pace")]);
+  if (tau <= 0) a2.push([side.toLowerCase(), "<b>" + side + "</b> \u00b7 settlement average forming"]);
+  else if (zEnd == null) a2.push(["hold", "Projection needs about 45 s of data"]);
+  else if ((endGap >= 0) !== (gap >= 0)) a2.push(["flip", "<b>Flip: " + side + " \u2192 " + other + " by the close</b> \u00b7 projected " + sgn(zEnd, 1) + " sigma, crosses in " + (x2 == null ? "--" : mmss(x2))]);
+  else if (Math.abs(zEnd) < 0.5) a2.push(["flip", "<b>" + side + ", too close</b> \u00b7 projected " + sgn(zEnd, 1) + " sigma at the close"]);
+  else a2.push([(endGap >= 0 ? "up" : "down"), "<b>" + side + " holds</b> \u00b7 projected " + sgn(zEnd, 1) + " sigma at the close" + (sl2 != null && sl2*gap < 0 && Math.abs(sl2) > 0.5 ? ", though heading toward the target at " + Math.abs(sl2).toFixed(2) + " sigma/min" : "")]);
   zAlarm("zA1", a1); zAlarm("zA2", a2);
   // Probability badges: the model's P(Up) now (with its 3-minute change), and the projected P at the close from the dashed line.
   var pNow = last[1], pUpNow = pNow, i3 = ser.length - 1; while (i3 > 0 && t - ser[i3][0] < 180000) i3--; var p3 = ser[i3][1], dP = 100*(pNow - p3);
