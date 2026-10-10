@@ -163,6 +163,13 @@ table.wide{min-width:560px}
           <label for="kxProxy">Kalshi proxy</label><input type="url" id="kxProxy" placeholder="https://…workers.dev" style="font:13px var(--mono);color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:5px 8px;width:220px;max-width:100%">
           <span class="note" id="kxNote"></span></div>
         <div hidden><input type="number" id="askUp"><input type="number" id="askDn"><span id="upAsk"></span><span id="upFair"></span><span id="upEdge"></span><span id="dnAsk"></span><span id="dnFair"></span><span id="dnEdge"></span></div>
+        <div style="border-top:1px solid var(--line);margin-top:12px;padding-top:10px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><h3>Flips: this window and the last three</h3><span class="note" id="flipN"></span></div>
+          <canvas id="cvFlip" style="height:96px;margin-top:6px" role="img" aria-label="Side of the target over the current and the last three windows, with flips marked"></canvas>
+          <div class="legend"><span style="--c:var(--up)">Above target (Up)</span><span style="--c:var(--down)">Below (Down)</span><span style="--c:var(--ink)">Flip</span></div>
+          <dl class="kv" style="border-top:0;padding-top:6px"><div><dt>Another flip before the close</dt><dd><span id="flipP">--</span> <small id="flipPn"></small></dd></div><div><dt>Average flip cycle</dt><dd><span id="flipCyc">--</span></dd></div><div><dt>Flips sit at</dt><dd><span id="flipOff">--</span></dd></div><div><dt>Last flip before the close</dt><dd><span id="flipLast">--</span></dd></div></dl>
+          <p class="note" id="flipNote">A flip is the index crossing the target and staying across for at least 5 seconds. The odds of another flip are the chance a random walk at the current distance touches the target before the close, 2 × (1 − Φ(|z|)); the count beside it is how many of the last three windows flipped after this point.</p>
+        </div>
         <p class="note">Kalshi's API sends no cross-origin header, so the perp and index come through a one-file proxy you host (kalshi-proxy.js in the repository). Fee: 0.07 &times; p &times; (1 &minus; p) per contract, rounded up to the cent.</p>
       </section>
 
@@ -359,7 +366,7 @@ if (typeof module !== "undefined") module.exports = Core;
 "use strict";
 var DEMO = location.hash === "#demo";
 /* ASSET-CONFIG */ var A = {sym: "BTC", series: "KXBTC15M", hist: "btc_history.json", cb: "BTC-USD", okx: "BTC-USDT-SWAP", krf: "PF_XBTUSD", kxPerp: "KXBTCPERP", kxMult: 10000, dp: 2, demo: 120000, key: "btc15kl"}; /* /ASSET-CONFIG */
-var WIN = 900000, END_LAG = 1000, BETA = 0.9, KEEP = 45*60000, LOGKEY = A.key + ".next.v1", P10 = Math.pow(10, A.dp);
+var WIN = 900000, END_LAG = 1000, BETA = 0.9, KEEP = 66*60000, LOGKEY = A.key + ".next.v1", P10 = Math.pow(10, A.dp);
 var S3 = "https://kalshi-public-docs.s3.amazonaws.com/external/crypto/" + A.hist, CBREST = "https://api.exchange.coinbase.com/";
 function money(x){ return "$" + Math.abs(x).toFixed(A.dp); }
 function $(id){ return document.getElementById(id); }
@@ -573,7 +580,7 @@ function renderStats(o){
 
 /* ---------- render ---------- */
 var css = {};
-function readCss(){ var st = getComputedStyle(document.documentElement); ["--ink","--muted","--line","--accent","--perp","--sunk"].forEach(function(k){ css[k] = st.getPropertyValue(k).trim(); }); }
+function readCss(){ var st = getComputedStyle(document.documentElement); ["--ink","--muted","--line","--accent","--perp","--sunk","--up","--down"].forEach(function(k){ css[k] = st.getPropertyValue(k).trim(); }); }
 function chip(id, label, last, maxAge, extra){ var ok = last && Date.now() - last < maxAge; setCls(id, "chip " + (ok ? "ok" : last ? "bad" : "")); $(id).lastElementChild.textContent = label + (ok ? (extra || " live") : last ? " stalled" : " connecting"); }
 function render(){
   var win = S.win, m = S.model; if (!win || !m) return;
@@ -879,6 +886,46 @@ function drawZ(){
     g.fillStyle = css["--accent"]; g.beginPath(); g.arc(X(t), Y(z), 4, 0, 2*Math.PI); g.fill();
   });
 }
+// Flip map: side of the target second by second for the current window and the three before it, with crossings that hold for 5 s.
+function flipWindows(){
+  var win = S.win; if (!win) return []; var out = [];
+  for (var k = 0; k < 4; k++) { var ws = win.ws - k*WIN, K = k === 0 ? win.K : (S.candles1m.get(ws - 60000) || null); if (!K) { out.push({ws: ws, K: null, segs: [], flips: []}); continue; }
+    var pts = []; S.raw.forEach(function(v, T){ if (T >= ws && T < ws + WIN) pts.push([T, v]); });
+    // Before the page was opened there is no 1-second history; the Kalshi file's 1-minute candle closes stand in (flips then land on minute marks).
+    var coarse = pts.length < 300; if (coarse) { pts = []; S.candles1m.forEach(function(v, T){ if (T + 60000 > ws && T + 60000 <= ws + WIN) pts.push([T + 60000, v]); }); }
+    pts.sort(function(a, b){ return a[0] - b[0]; });
+    var segs = [], flips = [], side = null, start = null, cand = null, candT = null;
+    pts.forEach(function(pt){ var sd = pt[1] >= K ? 1 : -1; if (side == null) { side = sd; start = pt[0]; return; }
+      if (sd !== side) { if (cand !== sd) { cand = sd; candT = pt[0]; if (coarse) { segs.push([start, candT, side]); flips.push(candT); side = sd; start = candT; cand = null; } } else if (pt[0] - candT >= (coarse ? 0 : 5000)) { segs.push([start, candT, side]); flips.push(candT); side = sd; start = candT; cand = null; } } else cand = null; });
+    if (side != null) segs.push([start, pts[pts.length-1][0], side]);
+    out.push({ws: ws, K: K, segs: segs, flips: flips, coarse: coarse, first: pts.length ? pts[0][0] : null, last: pts.length ? pts[pts.length-1][0] : null}); }
+  return out;
+}
+function drawFlips(){
+  var win = S.win, m = S.model; if (!win) return; var W = flipWindows(), t = Date.now() - S.off, el = t - win.ws;
+  var allFlips = [], cycles = [], offs = [], lastOff = [], after = 0, withData = 0;
+  W.forEach(function(w, k){ if (!w.K) return; if (k > 0) { withData++; if (w.flips.some(function(f){ return f - w.ws > el; })) after++; }
+    w.flips.forEach(function(f, i){ allFlips.push(f - w.ws); offs.push(f - w.ws); if (i) cycles.push(f - w.flips[i-1]); });
+    if (k > 0 && w.flips.length) lastOff.push(w.ws + WIN - w.flips[w.flips.length-1]); });
+  var mean = function(a){ return a.length ? a.reduce(function(x, y){ return x + y; }, 0)/a.length : null; };
+  setTxt("flipN", (W[0] && W[0].flips.length) + " this window \u00b7 " + W.slice(1).reduce(function(n, w){ return n + w.flips.length; }, 0) + " in the last three");
+  var pc = m && m.z != null && m.tau > 0 ? 2*(1 - (function(x){ var q = 1/(1 + 0.2316419*Math.abs(x)), dd = 0.3989423*Math.exp(-x*x/2); return 1 - dd*q*(((((1.330274*q - 1.821256)*q + 1.781478)*q - 0.3565638)*q + 0.3193815)); })(Math.abs(m.z))) : null;
+  setTxt("flipP", pc == null ? "--" : Math.round(100*pc) + "%"); setTxt("flipPn", withData ? after + " of " + withData + " recent windows did" : "");
+  setTxt("flipCyc", cycles.length ? mmss(mean(cycles)/1000) + " (" + cycles.length + " cycle" + (cycles.length === 1 ? "" : "s") + ")" : allFlips.length ? "one flip per window so far" : "no flips yet");
+  setTxt("flipOff", offs.length ? mmss(mean(offs)/1000) + " after the open, on average" : "--");
+  setTxt("flipLast", lastOff.length ? mmss(mean(lastOff)/1000) + " before the close, on average" : "--");
+  var cv = $("cvFlip"), dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight; if (!w) return;
+  if (cv.width !== Math.round(w*dpr)) { cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr); }
+  var g = cv.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h); readCss();
+  var x0 = 40, xe = w - 8, rowH = (h - 14)/4, X = function(ws, T){ return x0 + (xe - x0)*(T - ws)/WIN; };
+  g.font = "11px " + getComputedStyle(document.body).getPropertyValue("--mono"); g.textBaseline = "middle";
+  W.forEach(function(wn, k){ var y = 2 + k*rowH, bh = rowH - 6; g.fillStyle = css["--muted"]; g.textAlign = "right"; g.fillText(k === 0 ? "now" : "\u2212" + k, x0 - 6, y + bh/2);
+    g.fillStyle = css["--sunk"]; g.fillRect(x0, y, xe - x0, bh);
+    wn.segs.forEach(function(sg){ g.fillStyle = sg[2] > 0 ? css["--up"] : css["--down"]; g.globalAlpha = k === 0 ? 0.85 : 0.55; g.fillRect(X(wn.ws, sg[0]), y, Math.max(1, X(wn.ws, sg[1]) - X(wn.ws, sg[0])), bh); g.globalAlpha = 1; });
+    wn.flips.forEach(function(f){ var xx = Math.round(X(wn.ws, f)) + 0.5; g.strokeStyle = css["--ink"]; g.lineWidth = 2; g.beginPath(); g.moveTo(xx, y - 1); g.lineTo(xx, y + bh + 1); g.stroke(); });
+    if (k === 0) { var xn = Math.round(X(wn.ws, t)) + 0.5; g.strokeStyle = css["--accent"]; g.lineWidth = 1.5; g.setLineDash([3,2]); g.beginPath(); g.moveTo(xn, y - 2); g.lineTo(xn, y + bh + 2); g.stroke(); g.setLineDash([]); } });
+  g.fillStyle = css["--muted"]; g.textAlign = "center"; g.textBaseline = "top"; [0, 3, 6, 9, 12, 15].forEach(function(mn){ g.fillText(mn + "m", x0 + (xe - x0)*mn/15, h - 11); });
+}
 function drawVol(){
   var cv = $("cvVol"), dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight; if (!w) return;
   if (cv.width !== Math.round(w*dpr)) { cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr); }
@@ -934,7 +981,7 @@ if (DEMO) { startDemo(); renderTrack(); } else { connectAll(); seedVol(); setInt
 setInterval(poll, 1000); setInterval(pollKalshi, 1000); setInterval(tick, 250);
 try { $("kxProxy").value = localStorage.getItem("kl.proxy") || localStorage.getItem(A.key + ".proxy") || localStorage.getItem("eth15kl.proxy") || ""; } catch(e){}
 if (!A.kxPerp) { $("kxProxy").hidden = true; var kl = document.querySelector('label[for="kxProxy"]'); if (kl) kl.hidden = true; }
-$("kxProxy").addEventListener("change", function(){ try { localStorage.setItem("kl.proxy", this.value.trim()); } catch(e){} }); setInterval(function(){ try { draw(); drawVol(); drawZ(); } catch(e){ console.error(e); } }, 1000);
+$("kxProxy").addEventListener("change", function(){ try { localStorage.setItem("kl.proxy", this.value.trim()); } catch(e){} }); setInterval(function(){ try { draw(); drawVol(); drawZ(); drawFlips(); } catch(e){ console.error(e); } }, 1000);
 window.addEventListener("resize", function(){ draw(); drawVol(); });
 window.__app = S;
 })();
