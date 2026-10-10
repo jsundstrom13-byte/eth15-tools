@@ -867,9 +867,9 @@ confirmClick("trReset", "Erase", function(){ S.log = []; saveLog(); $("trBody").
 loadLog(); renderTrack();
 if (DEMO) { startDemo(); renderTrack(); } else { connectAll(); seedVol(); setInterval(seedVol, 300000); }
 setInterval(poll, 1000); setInterval(pollKalshi, 1000); setInterval(tick, 250);
-try { $("kxProxy").value = localStorage.getItem(A.key + ".proxy") || ""; } catch(e){}
+try { $("kxProxy").value = localStorage.getItem("kl.proxy") || localStorage.getItem(A.key + ".proxy") || localStorage.getItem("eth15kl.proxy") || ""; } catch(e){}
 if (!A.kxPerp) { $("kxProxy").hidden = true; var kl = document.querySelector('label[for="kxProxy"]'); if (kl) kl.hidden = true; }
-$("kxProxy").addEventListener("change", function(){ try { localStorage.setItem(A.key + ".proxy", this.value.trim()); } catch(e){} }); setInterval(function(){ try { draw(); drawVol(); } catch(e){ console.error(e); } }, 1000);
+$("kxProxy").addEventListener("change", function(){ try { localStorage.setItem("kl.proxy", this.value.trim()); } catch(e){} }); setInterval(function(){ try { draw(); drawVol(); } catch(e){ console.error(e); } }, 1000);
 window.addEventListener("resize", function(){ draw(); drawVol(); });
 window.__app = S;
 })();

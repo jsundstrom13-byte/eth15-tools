@@ -14,9 +14,11 @@ TEMPLATE = HERE / "eth15m-kalshi-lead.html"
 
 ASSETS = {
     # sym: (Kalshi series, history file, Coinbase, OKX perp, Kraken perp, Kalshi perp, perp multiplier, decimals, demo price)
-    "BTC": ("KXBTC15M", "btc_history.json", "BTC-USD", "BTC-USDT-SWAP", "PF_XBTUSD", "", 1, 2, 120000),
-    "SOL": ("KXSOL15M", "sol_history.json", "SOL-USD", "SOL-USDT-SWAP", "PF_SOLUSD", "", 1, 4, 120.5),
-    "XRP": ("KXXRP15M", "xrp_history.json", "XRP-USD", "XRP-USDT-SWAP", "PF_XRPUSD", "", 1, 4, 1.5),
+    # Kalshi perps (external-api margin markets): KXBTCPERP is 0.0001 BTC, KXSOLPERP 0.1 SOL, KXXRPPERP 1 XRP, so the
+    # quoted contract price times the multiplier gives the coin price.
+    "BTC": ("KXBTC15M", "btc_history.json", "BTC-USD", "BTC-USDT-SWAP", "PF_XBTUSD", "KXBTCPERP", 10000, 2, 120000),
+    "SOL": ("KXSOL15M", "sol_history.json", "SOL-USD", "SOL-USDT-SWAP", "PF_SOLUSD", "KXSOLPERP", 10, 4, 120.5),
+    "XRP": ("KXXRP15M", "xrp_history.json", "XRP-USD", "XRP-USDT-SWAP", "PF_XRPUSD", "KXXRPPERP", 1, 4, 1.5),
 }
 
 CONFIG_RE = re.compile(r"/\* ASSET-CONFIG \*/ var A = \{.*?\}; /\* /ASSET-CONFIG \*/")

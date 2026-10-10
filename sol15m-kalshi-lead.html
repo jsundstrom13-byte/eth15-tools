@@ -158,6 +158,7 @@ table.wide{min-width:560px}
             <option value="okx">OKX SOL-USDT perp (fastest)</option>
             <option value="krf">Kraken SOL-USD perp</option>
             <option value="cb">Coinbase SOL-USD spot</option>
+            <option value="kx">Kalshi SOL perp (needs your proxy)</option>
           </select>
           <label for="kxProxy">Kalshi proxy</label><input type="url" id="kxProxy" placeholder="https://…workers.dev" style="font:13px var(--mono);color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:5px 8px;width:220px;max-width:100%">
           <span class="note" id="kxNote"></span></div>
@@ -344,7 +345,7 @@ if (typeof module !== "undefined") module.exports = Core;
 (function(){
 "use strict";
 var DEMO = location.hash === "#demo";
-/* ASSET-CONFIG */ var A = {sym: "SOL", series: "KXSOL15M", hist: "sol_history.json", cb: "SOL-USD", okx: "SOL-USDT-SWAP", krf: "PF_SOLUSD", kxPerp: "", kxMult: 1, dp: 4, demo: 120.5, key: "sol15kl"}; /* /ASSET-CONFIG */
+/* ASSET-CONFIG */ var A = {sym: "SOL", series: "KXSOL15M", hist: "sol_history.json", cb: "SOL-USD", okx: "SOL-USDT-SWAP", krf: "PF_SOLUSD", kxPerp: "KXSOLPERP", kxMult: 10, dp: 4, demo: 120.5, key: "sol15kl"}; /* /ASSET-CONFIG */
 var WIN = 900000, END_LAG = 1000, BETA = 0.9, KEEP = 45*60000, LOGKEY = A.key + ".next.v1", P10 = Math.pow(10, A.dp);
 var S3 = "https://kalshi-public-docs.s3.amazonaws.com/external/crypto/" + A.hist, CBREST = "https://api.exchange.coinbase.com/";
 function money(x){ return "$" + Math.abs(x).toFixed(A.dp); }
@@ -866,9 +867,9 @@ confirmClick("trReset", "Erase", function(){ S.log = []; saveLog(); $("trBody").
 loadLog(); renderTrack();
 if (DEMO) { startDemo(); renderTrack(); } else { connectAll(); seedVol(); setInterval(seedVol, 300000); }
 setInterval(poll, 1000); setInterval(pollKalshi, 1000); setInterval(tick, 250);
-try { $("kxProxy").value = localStorage.getItem(A.key + ".proxy") || ""; } catch(e){}
+try { $("kxProxy").value = localStorage.getItem("kl.proxy") || localStorage.getItem(A.key + ".proxy") || localStorage.getItem("eth15kl.proxy") || ""; } catch(e){}
 if (!A.kxPerp) { $("kxProxy").hidden = true; var kl = document.querySelector('label[for="kxProxy"]'); if (kl) kl.hidden = true; }
-$("kxProxy").addEventListener("change", function(){ try { localStorage.setItem(A.key + ".proxy", this.value.trim()); } catch(e){} }); setInterval(function(){ try { draw(); drawVol(); } catch(e){ console.error(e); } }, 1000);
+$("kxProxy").addEventListener("change", function(){ try { localStorage.setItem("kl.proxy", this.value.trim()); } catch(e){} }); setInterval(function(){ try { draw(); drawVol(); } catch(e){ console.error(e); } }, 1000);
 window.addEventListener("resize", function(){ draw(); drawVol(); });
 window.__app = S;
 })();
