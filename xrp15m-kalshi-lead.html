@@ -168,6 +168,11 @@ table.wide{min-width:560px}
           <canvas id="cvFlip" style="height:96px;margin-top:6px" role="img" aria-label="Side of the target over the current and the last three windows, with flips marked"></canvas>
           <div class="legend"><span style="--c:var(--up)">Above target (Up)</span><span style="--c:var(--down)">Below (Down)</span><span style="--c:var(--ink)">Flip</span></div>
           <dl class="kv" style="border-top:0;padding-top:6px"><div><dt>Another flip before the close</dt><dd><span id="flipP">--</span> <small id="flipPn"></small></dd></div><div><dt>Average flip cycle</dt><dd><span id="flipCyc">--</span></dd></div><div><dt>Flips sit at</dt><dd><span id="flipOff">--</span></dd></div><div><dt>Last flip before the close</dt><dd><span id="flipLast">--</span></dd></div></dl>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:12px"><h3>Reversals: turns that do not cross the target</h3><span class="note" id="revN"></span></div>
+          <canvas id="cvRev" style="height:150px;margin-top:6px" role="img" aria-label="Index path against the target for the current and last three windows with reversal points marked"></canvas>
+          <div class="legend"><span style="--c:var(--accent)">Index less target</span><span style="--c:var(--up)">&#9650; bottom, turns up</span><span style="--c:var(--down)">&#9660; top, turns down</span></div>
+          <dl class="kv" style="border-top:0;padding-top:6px"><div><dt>Reversals</dt><dd><span id="revCnt">--</span></dd></div><div><dt>Average swing</dt><dd><span id="revAmp">--</span></dd></div><div><dt>Time between turns</dt><dd><span id="revCyc">--</span></dd></div><div><dt>Does the slope carry on?</dt><dd><span id="revAc">--</span></dd></div></dl>
+          <p class="note" id="revNote">A reversal is a turn after a move of at least 1.5 minute-sigmas each way (zig-zag), so small wobbles are ignored. "Does the slope carry on" is the live correlation between one minute's change and the next: near zero means a sigma-per-minute pace tells you how soon the target would be reached at that pace, not whether the pace will continue.</p>
           <p class="note" id="flipNote">A flip is the index crossing the target and staying across for at least 5 seconds. The odds of another flip are the chance a random walk at the current distance touches the target before the close, 2 × (1 − Φ(|z|)); the count beside it is how many of the last three windows flipped after this point.</p>
         </div>
         <p class="note">Kalshi's API sends no cross-origin header, so the perp and index come through a one-file proxy you host (kalshi-proxy.js in the repository). Fee: 0.07 &times; p &times; (1 &minus; p) per contract, rounded up to the cent.</p>
@@ -926,6 +931,38 @@ function drawFlips(){
     if (k === 0) { var xn = Math.round(X(wn.ws, t)) + 0.5; g.strokeStyle = css["--accent"]; g.lineWidth = 1.5; g.setLineDash([3,2]); g.beginPath(); g.moveTo(xn, y - 2); g.lineTo(xn, y + bh + 2); g.stroke(); g.setLineDash([]); } });
   g.fillStyle = css["--muted"]; g.textAlign = "center"; g.textBaseline = "top"; [0, 3, 6, 9, 12, 15].forEach(function(mn){ g.fillText(mn + "m", x0 + (xe - x0)*mn/15, h - 11); });
 }
+// Reversal map: zig-zag pivots on the index path, threshold 1.5 minute-sigmas in price, for the current and last three windows.
+function swings(pts, thr){ var piv = [], dir = 0, ext = pts[0], extI = 0; for (var i = 1; i < pts.length; i++) { var v = pts[i][1];
+    if (dir >= 0 && v > ext[1]) { ext = pts[i]; extI = i; } else if (dir <= 0 && v < ext[1]) { ext = pts[i]; extI = i; }
+    if (dir >= 0 && ext[1] - v >= thr) { if (dir > 0) piv.push([ext[0], ext[1], -1]); dir = -1; ext = pts[i]; extI = i; }
+    else if (dir <= 0 && v - ext[1] >= thr) { if (dir < 0) piv.push([ext[0], ext[1], 1]); dir = 1; ext = pts[i]; extI = i; } }
+  return piv; }
+function drawRev(){
+  var win = S.win, m = S.model; if (!win || !m) return; var W = flipWindows(), t = Date.now() - S.off, sigMin = m.sigMin || Math.sqrt(S.ewVar || 25e-8);
+  var rows = W.map(function(wn){ if (!wn.K) return null; var pts = []; if (!wn.coarse) S.raw.forEach(function(v, T){ if (T >= wn.ws && T < wn.ws + WIN) pts.push([T, v]); }); else S.candles1m.forEach(function(v, T){ if (T + 60000 > wn.ws && T + 60000 <= wn.ws + WIN) pts.push([T + 60000, v]); }); pts.sort(function(a, b){ return a[0] - b[0]; }); if (pts.length < 3) return null;
+    var thr = 1.5*sigMin*wn.K, piv = swings(pts, thr); return {wn: wn, pts: pts, piv: piv, thr: thr}; });
+  var cnt = 0, amps = [], gaps = []; rows.forEach(function(r){ if (!r) return; cnt += r.piv.length; r.piv.forEach(function(pv, i){ if (i) { amps.push(Math.abs(pv[1] - r.piv[i-1][1])/(sigMin*r.wn.K)); gaps.push(pv[0] - r.piv[i-1][0]); } }); });
+  var mean = function(a){ return a.length ? a.reduce(function(x, y){ return x + y; }, 0)/a.length : null; };
+  setTxt("revN", (rows[0] ? rows[0].piv.length : 0) + " this window \u00b7 " + rows.slice(1).reduce(function(n, r){ return n + (r ? r.piv.length : 0); }, 0) + " in the last three");
+  setTxt("revCnt", cnt + " in " + rows.filter(function(r){ return r; }).length + " windows"); setTxt("revAmp", amps.length ? mean(amps).toFixed(1) + " minute-sigmas" : "--"); setTxt("revCyc", gaps.length ? mmss(mean(gaps)/1000) : "--");
+  // Lag-1 autocorrelation of one-minute changes, over everything the page has seen.
+  var mins = []; S.raw.forEach(function(v, T){ if (T % 60000 === 0) mins.push([T, v]); }); mins.sort(function(a, b){ return a[0] - b[0]; }); var ch = []; for (var i = 1; i < mins.length; i++) if (mins[i][0] - mins[i-1][0] === 60000) ch.push(Math.log(mins[i][1]/mins[i-1][1])); else ch.push(null);
+  var xs = [], ys = []; for (var j = 1; j < ch.length; j++) if (ch[j] != null && ch[j-1] != null) { xs.push(ch[j-1]); ys.push(ch[j]); }
+  var rho = Core.corr(xs, ys), cont = 0, nn = 0; for (var q = 0; q < xs.length; q++) if (Math.abs(xs[q]) > sigMin) { nn++; if (xs[q]*ys[q] > 0) cont++; }
+  setTxt("revAc", rho == null ? "needs 20 minutes of data" : "\u03c1 = " + rho.toFixed(2) + " over " + xs.length + " min" + (nn ? "; after a 1\u03c3 minute the next continued " + Math.round(100*cont/nn) + "% of " + nn : "") + (Math.abs(rho)*Math.sqrt(xs.length) < 2 ? " \u00b7 no" : rho > 0 ? " \u00b7 some momentum" : " \u00b7 some mean reversion"));
+  var cv = $("cvRev"), dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight; if (!w) return;
+  if (cv.width !== Math.round(w*dpr)) { cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr); }
+  var g = cv.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h); readCss();
+  var x0 = 40, xe = w - 8, rowH = (h - 14)/4; g.font = "11px " + getComputedStyle(document.body).getPropertyValue("--mono"); g.textBaseline = "middle";
+  rows.forEach(function(r, k){ var y = 2 + k*rowH, bh = rowH - 6, wn = W[k], X = function(T){ return x0 + (xe - x0)*(T - wn.ws)/WIN; };
+    g.fillStyle = css["--muted"]; g.textAlign = "right"; g.fillText(k === 0 ? "now" : "\u2212" + k, x0 - 6, y + bh/2); g.fillStyle = css["--sunk"]; g.fillRect(x0, y, xe - x0, bh);
+    var ym = Math.round(y + bh/2) + 0.5; g.strokeStyle = css["--line"]; g.lineWidth = 1; g.beginPath(); g.moveTo(x0, ym); g.lineTo(xe, ym); g.stroke(); if (!r) return;
+    var mx = 0; r.pts.forEach(function(p){ mx = Math.max(mx, Math.abs(p[1] - r.wn.K)); }); mx = Math.max(mx, r.thr); var Y = function(v){ return y + bh/2 - (bh/2 - 2)*(v - r.wn.K)/mx; };
+    g.strokeStyle = css["--accent"]; g.lineWidth = k === 0 ? 1.6 : 1.2; g.globalAlpha = k === 0 ? 1 : 0.7; g.beginPath(); r.pts.forEach(function(p, i){ if (i) g.lineTo(X(p[0]), Y(p[1])); else g.moveTo(X(p[0]), Y(p[1])); }); g.stroke(); g.globalAlpha = 1;
+    r.piv.forEach(function(pv){ var xx = X(pv[0]), yy = Y(pv[1]); g.fillStyle = pv[2] > 0 ? css["--up"] : css["--down"]; g.beginPath(); if (pv[2] > 0) { g.moveTo(xx, yy + 1); g.lineTo(xx - 5, yy + 8); g.lineTo(xx + 5, yy + 8); } else { g.moveTo(xx, yy - 1); g.lineTo(xx - 5, yy - 8); g.lineTo(xx + 5, yy - 8); } g.closePath(); g.fill(); });
+    if (k === 0) { var xn = Math.round(X(t)) + 0.5; g.strokeStyle = css["--accent"]; g.setLineDash([3,2]); g.beginPath(); g.moveTo(xn, y - 2); g.lineTo(xn, y + bh + 2); g.stroke(); g.setLineDash([]); } });
+  g.fillStyle = css["--muted"]; g.textAlign = "center"; g.textBaseline = "top"; [0, 3, 6, 9, 12, 15].forEach(function(mn){ g.fillText(mn + "m", x0 + (xe - x0)*mn/15, h - 11); });
+}
 function drawVol(){
   var cv = $("cvVol"), dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight; if (!w) return;
   if (cv.width !== Math.round(w*dpr)) { cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr); }
@@ -981,7 +1018,7 @@ if (DEMO) { startDemo(); renderTrack(); } else { connectAll(); seedVol(); setInt
 setInterval(poll, 1000); setInterval(pollKalshi, 1000); setInterval(tick, 250);
 try { $("kxProxy").value = localStorage.getItem("kl.proxy") || localStorage.getItem(A.key + ".proxy") || localStorage.getItem("eth15kl.proxy") || ""; } catch(e){}
 if (!A.kxPerp) { $("kxProxy").hidden = true; var kl = document.querySelector('label[for="kxProxy"]'); if (kl) kl.hidden = true; }
-$("kxProxy").addEventListener("change", function(){ try { localStorage.setItem("kl.proxy", this.value.trim()); } catch(e){} }); setInterval(function(){ try { draw(); drawVol(); drawZ(); drawFlips(); } catch(e){ console.error(e); } }, 1000);
+$("kxProxy").addEventListener("change", function(){ try { localStorage.setItem("kl.proxy", this.value.trim()); } catch(e){} }); setInterval(function(){ try { draw(); drawVol(); drawZ(); drawFlips(); drawRev(); } catch(e){ console.error(e); } }, 1000);
 window.addEventListener("resize", function(){ draw(); drawVol(); });
 window.__app = S;
 })();
