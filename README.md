@@ -34,4 +34,5 @@ Kalshi's API refuses browser pages, so the Kalshi feed needs a tiny proxy you ho
 
 1. Sign in at dash.cloudflare.com (free), open Workers & Pages, create a Worker, paste `kalshi-proxy.js`, deploy.
 2. Copy the worker address (`https://<name>.<you>.workers.dev`) into the "Kalshi proxy" box on the Kalshi page. It is remembered in that browser.
-3. Pick "Kalshi … perp" in the perp feed list. The page then reads the perp's bid and ask and Kalshi's own index value once a second. The proxy address is shared by all four Kalshi apps in the same browser. Perp contracts: KXETHPERP 0.001 ETH, KXBTCPERP 0.0001 BTC, KXSOLPERP 0.1 SOL, KXXRPPERP 1 XRP; each app multiplies the contract quote back to the coin price.
+3. With the proxy set, the app also reads this window's Up/Down market quote every 2 seconds (bid and ask), which drives the Buy gate and the suggested bid; without it, type the market ask into the "Market ask ¢" box.
+4. Pick "Kalshi … perp" in the perp feed list. The page then reads the perp's bid and ask and Kalshi's own index value once a second. The proxy address is shared by all four Kalshi apps in the same browser. Perp contracts: KXETHPERP 0.001 ETH, KXBTCPERP 0.0001 BTC, KXSOLPERP 0.1 SOL, KXXRPPERP 1 XRP; each app multiplies the contract quote back to the coin price.
